@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Demand Planning Dashboard</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: navy header band with red rule, scenario bar, KPI strip, chart grid, action list, inventory table, input format */
+:root{
+  --bg:#F2F5F8; --panel:#FFFFFF; --ink:#0E1E2B; --muted:#5A6B79; --line:#DCE3EA; --soft:#EEF3F7;
+  --navy:#004975; --navy-ink:#FFFFFF; --blue:#007BC0; --red:#E20015;
+  --ok:#00824A; --ok-bg:#E1F2E9; --bad:#C8102E; --bad-bg:#FCE4E7; --warn:#9A5B00; --warn-bg:#FFF0D3;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"IBM Plex Sans","Segoe UI",Arial,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A131B; --panel:#111D27; --ink:#E5EDF3; --muted:#93A3B1; --line:#22323F; --soft:#172734;
+  --navy:#08304A; --navy-ink:#F2F7FB; --blue:#45A8E6; --red:#FF4A5C;
+  --ok:#4CC88A; --ok-bg:#12301F; --bad:#FF6B7A; --bad-bg:#3A141A; --warn:#F2B04A; --warn-bg:#3A2A0E; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A131B; --panel:#111D27; --ink:#E5EDF3; --muted:#93A3B1; --line:#22323F; --soft:#172734;
+  --navy:#08304A; --navy-ink:#F2F7FB; --blue:#45A8E6; --red:#FF4A5C;
+  --ok:#4CC88A; --ok-bg:#12301F; --bad:#FF6B7A; --bad-bg:#3A141A; --warn:#F2B04A; --warn-bg:#3A2A0E; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.band{background:var(--navy);color:var(--navy-ink);border-bottom:4px solid var(--red)}
+header .wrap{padding-block:22px 18px;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font:500 11px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;opacity:.75}
+h1{font:800 clamp(24px,3.4vw,34px)/1.1 var(--f-display);margin:6px 0 4px;letter-spacing:-.01em;text-wrap:balance}
+.sub{margin:0;opacity:.82;max-width:62ch}
+.src{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:5px 12px;font:500 12px var(--f-mono)}
+.chip i{width:8px;height:8px;border-radius:50%;background:#7FD6A6;display:inline-block}
+.btn{font:600 13px var(--f-body);border-radius:6px;padding:8px 14px;cursor:pointer;border:1px solid transparent}
+.btn-light{background:#fff;color:#004975}
+.btn-ghost{background:transparent;color:var(--navy-ink);border-color:rgba(255,255,255,.45)}
+.btn:focus-visible,select:focus-visible,input:focus-visible,.pill-btn:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+main .wrap{padding-block:20px 48px;display:grid;gap:20px}
+.msg{border-radius:8px;padding:10px 14px;font-weight:500}
+.msg.ok{background:var(--ok-bg);color:var(--ok)} .msg.err{background:var(--bad-bg);color:var(--bad)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;min-width:0}
+.panel h2{font:700 15px/1.2 var(--f-display);margin:0 0 4px;letter-spacing:.01em}
+.panel .note{color:var(--muted);font-size:12.5px;margin:0 0 12px}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px;align-items:end}
+.ctl label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.ctl select,.ctl input[type=number]{width:100%;font:500 14px var(--f-body);color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:7px 9px}
+.range{display:flex;gap:10px;align-items:center}
+.range input{flex:1;accent-color:var(--red)}
+.range output{font:500 14px var(--f-mono);min-width:44px;text-align:right}
+.scn{border-left:3px solid var(--red);padding-left:12px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:4px;align-content:start}
+.kpi .k{font:500 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.kpi .v{font:800 30px/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.kpi .d{font-size:12.5px;color:var(--muted)}
+.pill{display:inline-block;border-radius:999px;padding:2px 9px;font:600 11.5px var(--f-body);white-space:nowrap}
+.pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.bad{background:var(--bad-bg);color:var(--bad)} .pill.warn{background:var(--warn-bg);color:var(--warn)}
+.grid2{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:20px}
+.grid2b{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+@media (max-width:860px){.grid2,.grid2b{grid-template-columns:minmax(0,1fr)}}
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:18px;height:0;border-top:3px solid}
+.sw.dash{border-top-style:dashed}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--panel);border-radius:6px;padding:7px 10px;font:500 12px/1.45 var(--f-body);white-space:nowrap;transform:translate(-50%,-110%);box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.tip b{font-family:var(--f-mono);font-weight:500}
+.actions{display:grid;gap:10px}
+.act{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--soft)}
+.act .tag{width:6px;align-self:stretch;border-radius:3px;background:var(--red)}
+.act h3{margin:0;font:700 14px var(--f-display)}
+.act p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.act .qty{font:500 20px var(--f-mono);text-align:right;white-space:nowrap}
+.act .qty small{display:block;font:500 11px var(--f-mono);color:var(--muted)}
+.empty{color:var(--muted);padding:8px 0}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.pill-btn{font:500 12px var(--f-body);border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer}
+.pill-btn[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:var(--navy-ink)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:860px;font-variant-numeric:tabular-nums}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{font:500 11px var(--f-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);background:var(--soft);position:sticky;top:0}
+td:nth-child(-n+2),th:nth-child(-n+2){text-align:left}
+tr:last-child td{border-bottom:0}
+td.num{font-family:var(--f-mono);font-size:13px}
+tr.hl td{background:color-mix(in srgb,var(--bad-bg) 55%,transparent)}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:16px;text-align:center;color:var(--muted)}
+.drop.over{border-color:var(--blue);color:var(--ink)}
+.fmt{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:12px}
+.fmt div{background:var(--soft);border-radius:8px;padding:12px}
+.fmt h3{margin:0 0 6px;font:700 13px var(--f-display)}
+.fmt code{font:12px var(--f-mono);color:var(--ink)}
+.fmt p{margin:6px 0 0;font-size:12.5px;color:var(--muted)}
+.tabs{display:flex;gap:4px;margin-top:10px;overflow-x:auto;scrollbar-width:none}
+.tab{flex:none;font:600 14px var(--f-body);color:var(--navy-ink);background:transparent;border:0;border-bottom:3px solid transparent;padding:10px 4px;margin-right:18px;cursor:pointer;opacity:.75}
+.tab[aria-selected="true"]{opacity:1;border-bottom-color:#fff}
+.tab:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.scnchip{background:transparent;color:var(--navy-ink);cursor:pointer}
+.scnchip.on{background:var(--red);border-color:var(--red)}
+.btn-primary{background:var(--navy);color:#fff}
+.dsrc{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.dsrc .name{font:500 15px var(--f-mono)}
+.help{display:block;font-size:12px;color:var(--muted);margin-top:6px;line-height:1.4}
+.errlist{display:grid;gap:2px}
+.erow{display:grid;grid-template-columns:minmax(84px,110px) minmax(0,1fr) 56px 64px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.erow:last-child{border-bottom:0}
+.erow.head{padding:0 0 6px;font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.erow .p{font-weight:600}
+.track{position:relative;height:10px;background:var(--soft);border-radius:5px}
+.track .fillbar{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:var(--blue)}
+.track .fillbar.over{background:var(--red)}
+.track .thr{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);opacity:.55}
+.erow .n{font:500 13px var(--f-mono);text-align:right}
+.erow .b{font:500 12px var(--f-mono);text-align:right;color:var(--muted)}
+.ekey{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:10px}
+.ekey i{display:inline-block;width:2px;height:12px;background:var(--ink);opacity:.55;vertical-align:-2px;margin-right:6px}
+.page{display:grid;gap:20px}
+.page[hidden]{display:none!important}
+.tbl.compact table{min-width:0}
+.tbl.compact th,.tbl.compact td{padding:7px 10px}
+.tbl.tall{max-height:640px;overflow:auto}
+.filters .flabel{font:500 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);align-self:center;min-width:64px}
+.fgrp{display:flex;flex-wrap:wrap;gap:8px}
+.count{margin-left:auto;align-self:center;font:500 12px var(--f-mono);color:var(--muted)}
+th.c,td.c{text-align:center!important}
+tr.tot td{font-weight:600;background:var(--soft)}
+footer{color:var(--muted);font-size:12px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body>
+<header class="band">
+  <div class="wrap" style="padding-block:22px 0;display:block">
+    <h1>Demand Planning Dashboard</h1>
+    <nav class="tabs" role="tablist" aria-label="Pages">
+      <button type="button" class="tab" role="tab" id="tab-dash" aria-controls="pg-dash" aria-selected="true">Dashboard</button>
+      <button type="button" class="tab" role="tab" id="tab-sf" aria-controls="pg-sf" aria-selected="false">Sales forecast</button>
+      <button type="button" class="tab" role="tab" id="tab-acc" aria-controls="pg-acc" aria-selected="false">Accuracy</button>
+      <button type="button" class="tab" role="tab" id="tab-inv" aria-controls="pg-inv" aria-selected="false">Inventory</button>
+      <button type="button" class="tab" role="tab" id="tab-ful" aria-controls="pg-ful" aria-selected="false">Fulfillment</button>
+      <button type="button" class="tab" role="tab" id="tab-set" aria-controls="pg-set" aria-selected="false">Settings &amp; data</button>
+    </nav>
+  </div>
+</header>
+<main>
+<div class="wrap">
+  <div id="msg" class="msg" hidden></div>
+
+  <div id="pg-dash" class="page" role="tabpanel" aria-labelledby="tab-dash">
+    <section class="kpis" aria-label="Key figures">
+      <div class="kpi"><span class="k">Forecast accuracy</span><span class="v" id="kAcc">—</span><span class="d" id="kAccD">—</span></div>
+      <div class="kpi"><span class="k">Forecast bias</span><span class="v" id="kBias">—</span><span class="d" id="kBiasD">—</span></div>
+      <div class="kpi"><span class="k">Fulfillment rate</span><span class="v" id="kFill">—</span><span class="d" id="kFillD">—</span></div>
+      <div class="kpi"><span class="k">Locations to reorder</span><span class="v" id="kReo">—</span><span class="d" id="kReoD">—</span></div>
+      <div class="kpi"><span class="k">Units to order</span><span class="v" id="kUnits">—</span><span class="d" id="kUnitsD">—</span></div>
+    </section>
+
+    <div class="grid2">
+      <section class="panel" aria-labelledby="avfH">
+        <h2 id="avfH">Actual vs. forecast</h2>
+        <p class="note" id="avfNote">All products and RDCs, units per month.</p>
+        <div class="chart" id="avf"></div>
+        <div class="legend"><span><i class="sw" style="border-color:var(--blue)"></i>Actual</span><span><i class="sw dash" style="border-color:var(--red)"></i>Forecast</span><span><i style="width:9px;height:9px;border-radius:50%;background:var(--red);display:inline-block"></i>Promotion month</span></div>
+      </section>
+      <section class="panel" aria-labelledby="avfT">
+        <h2 id="avfT">Actual vs. forecast (all products, last 12 months)</h2>
+        <div class="tbl compact"><table><thead><tr><th>Month</th><th>Actual</th><th>Forecast</th><th>Error</th></tr></thead><tbody id="dAvf"></tbody></table></div>
+      </section>
+    </div>
+
+    <div class="grid2b">
+      <section class="panel" aria-labelledby="accT">
+        <h2 id="accT">Forecast accuracy by product</h2>
+        <p class="note">Last 12 months. MAPE above 15% needs review.</p>
+        <div class="tbl compact"><table><thead><tr><th>Product</th><th>MAPE</th><th>Bias</th><th class="c">Status</th></tr></thead><tbody id="dAcc"></tbody></table></div>
+      </section>
+      <section class="panel" aria-labelledby="fillH">
+        <h2 id="fillH">Fulfillment rate</h2>
+        <p class="note">Orders delivered complete and on time ÷ orders received.</p>
+        <div class="chart" id="fill"></div>
+        <div class="legend"><span><i class="sw" style="border-color:var(--blue)"></i>Fulfillment rate</span><span><i class="sw dash" style="border-color:var(--red)"></i>Target</span></div>
+      </section>
+    </div>
+
+    <div class="grid2b">
+      <section class="panel" aria-labelledby="invT">
+        <h2 id="invT">Inventory status by location</h2>
+        <p class="note">Position = stock + on order. Full detail on the Inventory page.</p>
+        <div class="tbl compact"><table><thead><tr><th>Product</th><th>RDC</th><th>Position</th><th>Reorder point</th><th class="c">Status</th><th>Order qty</th></tr></thead><tbody id="dInv"></tbody></table></div>
+      </section>
+      <section class="panel" aria-labelledby="actH">
+        <h2 id="actH">Planner actions</h2>
+        <p class="note">Locations at or below their reorder point, with a stock transfer option where another RDC has spare stock.</p>
+        <div class="actions" id="actions"></div>
+      </section>
+    </div>
+  </div>
+
+  <div id="pg-sf" class="page" role="tabpanel" aria-labelledby="tab-sf" hidden>
+    <section class="panel" aria-labelledby="sfH">
+      <h2 id="sfH">Sales forecast</h2>
+      <p class="note">One row per month, product and RDC. Forecast = average of the previous months (see Settings &amp; data). The first months have no forecast because there's not enough history yet.</p>
+      <div class="filters"><span class="flabel">Product</span><span id="sfProd" class="fgrp" role="group" aria-label="Filter by product"></span></div>
+      <div class="filters"><span class="flabel">RDC</span><span id="sfRdc" class="fgrp" role="group" aria-label="Filter by RDC"></span><span class="count" id="sfCount"></span></div>
+      <div class="tbl tall"><table><thead><tr><th>Month</th><th>Product</th><th>Month #</th><th>SKU</th><th>RDC</th><th>Units sold</th><th>Forecast</th><th>Error (fcst − actual)</th><th>Abs % error</th></tr></thead><tbody id="sfBody"></tbody></table></div>
+    </section>
+  </div>
+
+  <div id="pg-acc" class="page" role="tabpanel" aria-labelledby="tab-acc" hidden>
+    <section class="panel" aria-labelledby="accH">
+      <h2 id="accH">Forecast accuracy by product</h2>
+      <p class="note" id="accNote">Last 12 months.</p>
+      <div class="tbl"><table><thead><tr><th>Product</th><th>Actual units</th><th>Forecast units</th><th>MAPE</th><th>Forecast accuracy</th><th>Bias</th><th class="c">Status</th></tr></thead><tbody id="accProd"></tbody></table></div>
+    </section>
+    <section class="panel" aria-labelledby="accH2">
+      <h2 id="accH2">Forecast accuracy by RDC</h2>
+      <p class="note">Bias: positive = forecast too high (extra inventory), negative = forecast too low (risk of back orders).</p>
+      <div class="tbl"><table><thead><tr><th>RDC</th><th>Actual units</th><th>Forecast units</th><th>MAPE</th><th>Forecast accuracy</th><th>Bias</th><th class="c">Status</th></tr></thead><tbody id="accRdc"></tbody></table></div>
+    </section>
+  </div>
+
+  <div id="pg-inv" class="page" role="tabpanel" aria-labelledby="tab-inv" hidden>
+    <section class="panel" aria-labelledby="invH">
+      <h2 id="invH">Inventory and reorder plan</h2>
+      <p class="note">Reorder point = lead-time demand + safety stock. Status is Reorder when stock + on order ≤ reorder point. Suggested order brings the position up to the reorder point plus one month of demand.</p>
+      <div class="filters" id="filters" role="group" aria-label="Filter by RDC"></div>
+      <div class="tbl"><table>
+        <thead><tr><th>Product</th><th>RDC</th><th>Stock</th><th>On order</th><th>Lead time (wk)</th><th>Avg demand</th><th>Std dev</th><th>Next-month fcst</th><th>Lead-time demand</th><th>Safety stock</th><th>Reorder point</th><th>Position</th><th>Days of supply</th><th class="c">Status</th><th>Suggested order</th></tr></thead>
+        <tbody id="invBody"></tbody>
+      </table></div>
+    </section>
+  </div>
+
+  <div id="pg-ful" class="page" role="tabpanel" aria-labelledby="tab-ful" hidden>
+    <section class="panel" aria-labelledby="fulH">
+      <h2 id="fulH">Order fulfillment rate</h2>
+      <p class="note">Orders delivered complete and on time ÷ orders received, against the target in Settings &amp; data.</p>
+      <div class="chart" id="fill2"></div>
+      <div class="legend" style="margin-bottom:14px"><span><i class="sw" style="border-color:var(--blue)"></i>Fulfillment rate</span><span><i class="sw dash" style="border-color:var(--red)"></i>Target</span></div>
+      <div class="tbl"><table><thead><tr><th>Month</th><th>Orders received</th><th>Fulfilled on time &amp; complete</th><th>Fulfillment rate</th><th>Target</th><th class="c">Status</th></tr></thead><tbody id="fulBody"></tbody></table></div>
+    </section>
+  </div>
+
+  <div id="pg-set" class="page" role="tabpanel" aria-labelledby="tab-set" hidden>
+    <section class="panel" aria-labelledby="dataH">
+      <h2 id="dataH">Data</h2>
+      <p class="note">Upload an Excel file with Sales, Inventory and Orders sheets. It's read in your browser only and isn't stored or shared.</p>
+      <div class="dsrc">
+        <button class="btn btn-primary" id="uploadBtn" type="button">Upload Excel</button>
+        <input type="file" id="fileIn" accept=".xlsx,.xls" hidden>
+      </div>
+      <div class="drop" id="drop">Or drop an Excel file here</div>
+    </section>
+
+    <section class="panel" aria-labelledby="scnH">
+        <h2 id="scnH">Promotion scenario</h2>
+        <p class="note">Test a promotion before it happens. It raises next month's forecast for one product at every RDC, so reorder points and suggested orders update.</p>
+        <div class="controls">
+          <div class="ctl scn"><label for="promoProd">Product</label><select id="promoProd"></select></div>
+          <div class="ctl scn"><label for="uplift">Extra demand</label><div class="range"><input type="range" id="uplift" min="0" max="60" step="5" value="0"><output id="upliftOut" for="uplift">0%</output></div></div>
+        </div>
+      </section>
+
+    <section class="panel" aria-labelledby="setH">
+        <h2 id="setH">Planning settings</h2>
+        <p class="note">These change how the forecast, safety stock and targets are calculated.</p>
+        <div class="controls">
+          <div class="ctl"><label for="svc">Service level</label><select id="svc"><option value="0.90">90% (z 1.28)</option><option value="0.95" selected>95% (z 1.64)</option><option value="0.98">98% (z 2.05)</option><option value="0.99">99% (z 2.33)</option></select><span class="help">Chance of not running out during the lead time. Higher means more safety stock.</span></div>
+          <div class="ctl"><label for="win">Forecast window</label><select id="win"><option value="2">2-month average</option><option value="3" selected>3-month average</option><option value="4">4-month average</option><option value="6">6-month average</option></select><span class="help">How many past months the moving-average forecast uses.</span></div>
+          <div class="ctl"><label for="target">Fulfillment target (%)</label><input type="number" id="target" min="50" max="100" step="1" value="92"><span class="help">Share of orders to deliver complete and on time.</span></div>
+        </div>
+      </section>
+  </div>
+
+  <footer>Method: moving-average forecast; MAPE and bias over the last 12 months; safety stock = z × std dev of monthly demand × √(lead time in months). Sample data is fictional and for practice only.</footer>
+</div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const SAMPLE={"sales":[["2024-10","DW-100","Dishwasher","West","N",995],["2024-11","DW-100","Dishwasher","West","N",1102],["2024-12","DW-100","Dishwasher","West","N",867],["2025-01","DW-100","Dishwasher","West","N",843],["2025-02","DW-100","Dishwasher","West","N",787],["2025-03","DW-100","Dishwasher","West","N",922],["2025-04","DW-100","Dishwasher","West","N",925],["2025-05","DW-100","Dishwasher","West","N",956],["2025-06","DW-100","Dishwasher","West","N",989],["2025-07","DW-100","Dishwasher","West","N",1018],["2025-08","DW-100","Dishwasher","West","N",904],["2025-09","DW-100","Dishwasher","West","N",1027],["2025-10","DW-100","Dishwasher","West","N",976],["2025-11","DW-100","Dishwasher","West","N",1169],["2025-12","DW-100","Dishwasher","West","N",893],["2026-01","DW-100","Dishwasher","West","N",787],["2026-02","DW-100","Dishwasher","West","N",894],["2026-03","DW-100","Dishwasher","West","N",972],["2026-04","DW-100","Dishwasher","West","N",984],["2026-05","DW-100","Dishwasher","West","Y",1371],["2026-06","DW-100","Dishwasher","West","N",1072],["2026-07","DW-100","Dishwasher","West","N",1038],["2026-08","DW-100","Dishwasher","West","N",960],["2026-09","DW-100","Dishwasher","West","N",1217],["2024-10","DW-100","Dishwasher","Central","N",701],["2024-11","DW-100","Dishwasher","Central","N",805],["2024-12","DW-100","Dishwasher","Central","N",657],["2025-01","DW-100","Dishwasher","Central","N",552],["2025-02","DW-100","Dishwasher","Central","N",683],["2025-03","DW-100","Dishwasher","Central","N",699],["2025-04","DW-100","Dishwasher","Central","N",688],["2025-05","DW-100","Dishwasher","Central","N",884],["2025-06","DW-100","Dishwasher","Central","N",653],["2025-07","DW-100","Dishwasher","Central","N",789],["2025-08","DW-100","Dishwasher","Central","N",640],["2025-09","DW-100","Dishwasher","Central","N",775],["2025-10","DW-100","Dishwasher","Central","N",683],["2025-11","DW-100","Dishwasher","Central","N",1005],["2025-12","DW-100","Dishwasher","Central","N",780],["2026-01","DW-100","Dishwasher","Central","N",657],["2026-02","DW-100","Dishwasher","Central","N",707],["2026-03","DW-100","Dishwasher","Central","N",742],["2026-04","DW-100","Dishwasher","Central","N",779],["2026-05","DW-100","Dishwasher","Central","Y",1121],["2026-06","DW-100","Dishwasher","Central","N",681],["2026-07","DW-100","Dishwasher","Central","N",713],["2026-08","DW-100","Dishwasher","Central","N",782],["2026-09","DW-100","Dishwasher","Central","N",958],["2024-10","DW-100","Dishwasher","East","N",1020],["2024-11","DW-100","Dishwasher","East","N",1220],["2024-12","DW-100","Dishwasher","East","N",1072],["2025-01","DW-100","Dishwasher","East","N",927],["2025-02","DW-100","Dishwasher","East","N",924],["2025-03","DW-100","Dishwasher","East","N",1040],["2025-04","DW-100","Dishwasher","East","N",1020],["2025-05","DW-100","Dishwasher","East","N",1165],["2025-06","DW-100","Dishwasher","East","N",947],["2025-07","DW-100","Dishwasher","East","N",1125],["2025-08","DW-100","Dishwasher","East","N",1038],["2025-09","DW-100","Dishwasher","East","N",1235],["2025-10","DW-100","Dishwasher","East","N",1029],["2025-11","DW-100","Dishwasher","East","N",1169],["2025-12","DW-100","Dishwasher","East","N",1001],["2026-01","DW-100","Dishwasher","East","N",1055],["2026-02","DW-100","Dishwasher","East","N",939],["2026-03","DW-100","Dishwasher","East","N",1015],["2026-04","DW-100","Dishwasher","East","N",999],["2026-05","DW-100","Dishwasher","East","Y",1571],["2026-06","DW-100","Dishwasher","East","N",1064],["2026-07","DW-100","Dishwasher","East","N",1062],["2026-08","DW-100","Dishwasher","East","N",1190],["2026-09","DW-100","Dishwasher","East","N",1185],["2024-10","RF-200","Refrigerator","West","N",505],["2024-11","RF-200","Refrigerator","West","N",684],["2024-12","RF-200","Refrigerator","West","N",524],["2025-01","RF-200","Refrigerator","West","N",451],["2025-02","RF-200","Refrigerator","West","N",468],["2025-03","RF-200","Refrigerator","West","N",535],["2025-04","RF-200","Refrigerator","West","N",508],["2025-05","RF-200","Refrigerator","West","N",530],["2025-06","RF-200","Refrigerator","West","N",538],["2025-07","RF-200","Refrigerator","West","N",575],["2025-08","RF-200","Refrigerator","West","N",535],["2025-09","RF-200","Refrigerator","West","N",544],["2025-10","RF-200","Refrigerator","West","N",520],["2025-11","RF-200","Refrigerator","West","N",637],["2025-12","RF-200","Refrigerator","West","N",494],["2026-01","RF-200","Refrigerator","West","N",516],["2026-02","RF-200","Refrigerator","West","N",525],["2026-03","RF-200","Refrigerator","West","N",558],["2026-04","RF-200","Refrigerator","West","N",556],["2026-05","RF-200","Refrigerator","West","N",646],["2026-06","RF-200","Refrigerator","West","N",542],["2026-07","RF-200","Refrigerator","West","N",569],["2026-08","RF-200","Refrigerator","West","N",524],["2026-09","RF-200","Refrigerator","West","N",601],["2024-10","RF-200","Refrigerator","Central","N",456],["2024-11","RF-200","Refrigerator","Central","N",530],["2024-12","RF-200","Refrigerator","Central","N",377],["2025-01","RF-200","Refrigerator","Central","N",355],["2025-02","RF-200","Refrigerator","Central","N",348],["2025-03","RF-200","Refrigerator","Central","N",419],["2025-04","RF-200","Refrigerator","Central","N",421],["2025-05","RF-200","Refrigerator","Central","N",434],["2025-06","RF-200","Refrigerator","Central","N",426],["2025-07","RF-200","Refrigerator","Central","N",422],["2025-08","RF-200","Refrigerator","Central","N",453],["2025-09","RF-200","Refrigerator","Central","N",465],["2025-10","RF-200","Refrigerator","Central","N",464],["2025-11","RF-200","Refrigerator","Central","N",513],["2025-12","RF-200","Refrigerator","Central","N",396],["2026-01","RF-200","Refrigerator","Central","N",390],["2026-02","RF-200","Refrigerator","Central","N",409],["2026-03","RF-200","Refrigerator","Central","N",443],["2026-04","RF-200","Refrigerator","Central","N",399],["2026-05","RF-200","Refrigerator","Central","N",502],["2026-06","RF-200","Refrigerator","Central","N",434],["2026-07","RF-200","Refrigerator","Central","N",445],["2026-08","RF-200","Refrigerator","Central","N",420],["2026-09","RF-200","Refrigerator","Central","N",533],["2024-10","RF-200","Refrigerator","East","N",588],["2024-11","RF-200","Refrigerator","East","N",718],["2024-12","RF-200","Refrigerator","East","N",599],["2025-01","RF-200","Refrigerator","East","N",553],["2025-02","RF-200","Refrigerator","East","N",548],["2025-03","RF-200","Refrigerator","East","N",643],["2025-04","RF-200","Refrigerator","East","N",635],["2025-05","RF-200","Refrigerator","East","N",728],["2025-06","RF-200","Refrigerator","East","N",658],["2025-07","RF-200","Refrigerator","East","N",666],["2025-08","RF-200","Refrigerator","East","N",603],["2025-09","RF-200","Refrigerator","East","N",677],["2025-10","RF-200","Refrigerator","East","N",611],["2025-11","RF-200","Refrigerator","East","N",802],["2025-12","RF-200","Refrigerator","East","N",565],["2026-01","RF-200","Refrigerator","East","N",511],["2026-02","RF-200","Refrigerator","East","N",580],["2026-03","RF-200","Refrigerator","East","N",592],["2026-04","RF-200","Refrigerator","East","N",570],["2026-05","RF-200","Refrigerator","East","N",762],["2026-06","RF-200","Refrigerator","East","N",623],["2026-07","RF-200","Refrigerator","East","N",706],["2026-08","RF-200","Refrigerator","East","N",634],["2026-09","RF-200","Refrigerator","East","N",675],["2024-10","RG-300","Range","West","N",279],["2024-11","RG-300","Range","West","N",366],["2024-12","RG-300","Range","West","N",284],["2025-01","RG-300","Range","West","N",261],["2025-02","RG-300","Range","West","N",271],["2025-03","RG-300","Range","West","N",279],["2025-04","RG-300","Range","West","N",309],["2025-05","RG-300","Range","West","N",318],["2025-06","RG-300","Range","West","N",307],["2025-07","RG-300","Range","West","N",341],["2025-08","RG-300","Range","West","N",334],["2025-09","RG-300","Range","West","N",381],["2025-10","RG-300","Range","West","N",286],["2025-11","RG-300","Range","West","N",414],["2025-12","RG-300","Range","West","N",324],["2026-01","RG-300","Range","West","N",304],["2026-02","RG-300","Range","West","N",272],["2026-03","RG-300","Range","West","N",330],["2026-04","RG-300","Range","West","N",359],["2026-05","RG-300","Range","West","N",339],["2026-06","RG-300","Range","West","N",334],["2026-07","RG-300","Range","West","N",366],["2026-08","RG-300","Range","West","N",314],["2026-09","RG-300","Range","West","N",374],["2024-10","RG-300","Range","Central","N",235],["2024-11","RG-300","Range","Central","N",300],["2024-12","RG-300","Range","Central","N",229],["2025-01","RG-300","Range","Central","N",231],["2025-02","RG-300","Range","Central","N",228],["2025-03","RG-300","Range","Central","N",271],["2025-04","RG-300","Range","Central","N",243],["2025-05","RG-300","Range","Central","N",294],["2025-06","RG-300","Range","Central","N",274],["2025-07","RG-300","Range","Central","N",282],["2025-08","RG-300","Range","Central","N",240],["2025-09","RG-300","Range","Central","N",300],["2025-10","RG-300","Range","Central","N",255],["2025-11","RG-300","Range","Central","N",338],["2025-12","RG-300","Range","Central","N",256],["2026-01","RG-300","Range","Central","N",257],["2026-02","RG-300","Range","Central","N",242],["2026-03","RG-300","Range","Central","N",238],["2026-04","RG-300","Range","Central","N",247],["2026-05","RG-300","Range","Central","N",324],["2026-06","RG-300","Range","Central","N",267],["2026-07","RG-300","Range","Central","N",305],["2026-08","RG-300","Range","Central","N",277],["2026-09","RG-300","Range","Central","N",288],["2024-10","RG-300","Range","East","N",374],["2024-11","RG-300","Range","East","N",420],["2024-12","RG-300","Range","East","N",295],["2025-01","RG-300","Range","East","N",360],["2025-02","RG-300","Range","East","N",284],["2025-03","RG-300","Range","East","N",372],["2025-04","RG-300","Range","East","N",380],["2025-05","RG-300","Range","East","N",419],["2025-06","RG-300","Range","East","N",326],["2025-07","RG-300","Range","East","N",405],["2025-08","RG-300","Range","East","N",334],["2025-09","RG-300","Range","East","N",371],["2025-10","RG-300","Range","East","N",360],["2025-11","RG-300","Range","East","N",484],["2025-12","RG-300","Range","East","N",359],["2026-01","RG-300","Range","East","N",351],["2026-02","RG-300","Range","East","N",327],["2026-03","RG-300","Range","East","N",371],["2026-04","RG-300","Range","East","N",351],["2026-05","RG-300","Range","East","N",426],["2026-06","RG-300","Range","East","N",393],["2026-07","RG-300","Range","East","N",393],["2026-08","RG-300","Range","East","N",393],["2026-09","RG-300","Range","East","N",407],["2024-10","CT-400","Cooktop","West","N",194],["2024-11","CT-400","Cooktop","West","N",253],["2024-12","CT-400","Cooktop","West","N",190],["2025-01","CT-400","Cooktop","West","N",189],["2025-02","CT-400","Cooktop","West","N",186],["2025-03","CT-400","Cooktop","West","N",226],["2025-04","CT-400","Cooktop","West","N",203],["2025-05","CT-400","Cooktop","West","N",234],["2025-06","CT-400","Cooktop","West","N",194],["2025-07","CT-400","Cooktop","West","N",219],["2025-08","CT-400","Cooktop","West","N",217],["2025-09","CT-400","Cooktop","West","N",220],["2025-10","CT-400","Cooktop","West","N",210],["2025-11","CT-400","Cooktop","West","N",275],["2025-12","CT-400","Cooktop","West","N",200],["2026-01","CT-400","Cooktop","West","N",186],["2026-02","CT-400","Cooktop","West","N",203],["2026-03","CT-400","Cooktop","West","N",216],["2026-04","CT-400","Cooktop","West","N",220],["2026-05","CT-400","Cooktop","West","N",266],["2026-06","CT-400","Cooktop","West","N",232],["2026-07","CT-400","Cooktop","West","N",224],["2026-08","CT-400","Cooktop","West","N",212],["2026-09","CT-400","Cooktop","West","N",245],["2024-10","CT-400","Cooktop","Central","N",149],["2024-11","CT-400","Cooktop","Central","N",167],["2024-12","CT-400","Cooktop","Central","N",155],["2025-01","CT-400","Cooktop","Central","N",137],["2025-02","CT-400","Cooktop","Central","N",144],["2025-03","CT-400","Cooktop","Central","N",143],["2025-04","CT-400","Cooktop","Central","N",166],["2025-05","CT-400","Cooktop","Central","N",172],["2025-06","CT-400","Cooktop","Central","N",154],["2025-07","CT-400","Cooktop","Central","N",150],["2025-08","CT-400","Cooktop","Central","N",155],["2025-09","CT-400","Cooktop","Central","N",171],["2025-10","CT-400","Cooktop","Central","N",156],["2025-11","CT-400","Cooktop","Central","N",203],["2025-12","CT-400","Cooktop","Central","N",152],["2026-01","CT-400","Cooktop","Central","N",152],["2026-02","CT-400","Cooktop","Central","N",140],["2026-03","CT-400","Cooktop","Central","N",151],["2026-04","CT-400","Cooktop","Central","N",161],["2026-05","CT-400","Cooktop","Central","N",193],["2026-06","CT-400","Cooktop","Central","N",175],["2026-07","CT-400","Cooktop","Central","N",180],["2026-08","CT-400","Cooktop","Central","N",146],["2026-09","CT-400","Cooktop","Central","N",185],["2024-10","CT-400","Cooktop","East","N",240],["2024-11","CT-400","Cooktop","East","N",278],["2024-12","CT-400","Cooktop","East","N",205],["2025-01","CT-400","Cooktop","East","N",205],["2025-02","CT-400","Cooktop","East","N",196],["2025-03","CT-400","Cooktop","East","N",234],["2025-04","CT-400","Cooktop","East","N",226],["2025-05","CT-400","Cooktop","East","N",283],["2025-06","CT-400","Cooktop","East","N",235],["2025-07","CT-400","Cooktop","East","N",230],["2025-08","CT-400","Cooktop","East","N",238],["2025-09","CT-400","Cooktop","East","N",268],["2025-10","CT-400","Cooktop","East","N",224],["2025-11","CT-400","Cooktop","East","N",283],["2025-12","CT-400","Cooktop","East","N",191],["2026-01","CT-400","Cooktop","East","N",222],["2026-02","CT-400","Cooktop","East","N",204],["2026-03","CT-400","Cooktop","East","N",206],["2026-04","CT-400","Cooktop","East","N",212],["2026-05","CT-400","Cooktop","East","N",270],["2026-06","CT-400","Cooktop","East","N",249],["2026-07","CT-400","Cooktop","East","N",250],["2026-08","CT-400","Cooktop","East","N",247],["2026-09","CT-400","Cooktop","East","N",248],["2024-10","HD-500","Range Hood","West","N",138],["2024-11","HD-500","Range Hood","West","N",199],["2024-12","HD-500","Range Hood","West","N",148],["2025-01","HD-500","Range Hood","West","N",137],["2025-02","HD-500","Range Hood","West","N",148],["2025-03","HD-500","Range Hood","West","N",145],["2025-04","HD-500","Range Hood","West","N",150],["2025-05","HD-500","Range Hood","West","N",189],["2025-06","HD-500","Range Hood","West","N",173],["2025-07","HD-500","Range Hood","West","N",164],["2025-08","HD-500","Range Hood","West","N",172],["2025-09","HD-500","Range Hood","West","N",167],["2025-10","HD-500","Range Hood","West","N",161],["2025-11","HD-500","Range Hood","West","N",196],["2025-12","HD-500","Range Hood","West","N",137],["2026-01","HD-500","Range Hood","West","N",146],["2026-02","HD-500","Range Hood","West","N",152],["2026-03","HD-500","Range Hood","West","N",159],["2026-04","HD-500","Range Hood","West","N",161],["2026-05","HD-500","Range Hood","West","N",202],["2026-06","HD-500","Range Hood","West","N",150],["2026-07","HD-500","Range Hood","West","N",156],["2026-08","HD-500","Range Hood","West","N",157],["2026-09","HD-500","Range Hood","West","N",168],["2024-10","HD-500","Range Hood","Central","N",130],["2024-11","HD-500","Range Hood","Central","N",154],["2024-12","HD-500","Range Hood","Central","N",109],["2025-01","HD-500","Range Hood","Central","N",106],["2025-02","HD-500","Range Hood","Central","N",129],["2025-03","HD-500","Range Hood","Central","N",118],["2025-04","HD-500","Range Hood","Central","N",118],["2025-05","HD-500","Range Hood","Central","N",145],["2025-06","HD-500","Range Hood","Central","N",129],["2025-07","HD-500","Range Hood","Central","N",133],["2025-08","HD-500","Range Hood","Central","N",118],["2025-09","HD-500","Range Hood","Central","N",129],["2025-10","HD-500","Range Hood","Central","N",131],["2025-11","HD-500","Range Hood","Central","N",158],["2025-12","HD-500","Range Hood","Central","N",109],["2026-01","HD-500","Range Hood","Central","N",123],["2026-02","HD-500","Range Hood","Central","N",121],["2026-03","HD-500","Range Hood","Central","N",127],["2026-04","HD-500","Range Hood","Central","N",127],["2026-05","HD-500","Range Hood","Central","N",151],["2026-06","HD-500","Range Hood","Central","N",125],["2026-07","HD-500","Range Hood","Central","N",126],["2026-08","HD-500","Range Hood","Central","N",134],["2026-09","HD-500","Range Hood","Central","N",132],["2024-10","HD-500","Range Hood","East","N",175],["2024-11","HD-500","Range Hood","East","N",196],["2024-12","HD-500","Range Hood","East","N",162],["2025-01","HD-500","Range Hood","East","N",154],["2025-02","HD-500","Range Hood","East","N",173],["2025-03","HD-500","Range Hood","East","N",163],["2025-04","HD-500","Range Hood","East","N",160],["2025-05","HD-500","Range Hood","East","N",194],["2025-06","HD-500","Range Hood","East","N",164],["2025-07","HD-500","Range Hood","East","N",179],["2025-08","HD-500","Range Hood","East","N",182],["2025-09","HD-500","Range Hood","East","N",205],["2025-10","HD-500","Range Hood","East","N",197],["2025-11","HD-500","Range Hood","East","N",214],["2025-12","HD-500","Range Hood","East","N",198],["2026-01","HD-500","Range Hood","East","N",182],["2026-02","HD-500","Range Hood","East","N",161],["2026-03","HD-500","Range Hood","East","N",157],["2026-04","HD-500","Range Hood","East","N",182],["2026-05","HD-500","Range Hood","East","N",212],["2026-06","HD-500","Range Hood","East","N",159],["2026-07","HD-500","Range Hood","East","N",195],["2026-08","HD-500","Range Hood","East","N",183],["2026-09","HD-500","Range Hood","East","N",195]],"inventory":[["DW-100","Dishwasher","West",823,250,3],["DW-100","Dishwasher","Central",924,200,3],["DW-100","Dishwasher","East",841,300,3],["RF-200","Refrigerator","West",689,150,4],["RF-200","Refrigerator","Central",305,100,4],["RF-200","Refrigerator","East",1043,150,4],["RG-300","Range","West",309,100,3],["RG-300","Range","Central",328,50,3],["RG-300","Range","East",392,100,3],["CT-400","Cooktop","West",606,50,8],["CT-400","Cooktop","Central",500,50,8],["CT-400","Cooktop","East",394,50,8],["HD-500","Range Hood","West",303,50,6],["HD-500","Range Hood","Central",260,50,6],["HD-500","Range Hood","East",365,50,6]],"orders":[["2025-10",3263,3035],["2025-11",4371,3934],["2025-12",3589,3374],["2026-01",2957,2809],["2026-02",3020,2839],["2026-03",3639,3384],["2026-04",3863,3554],["2026-05",4144,3647],["2026-06",3477,3234],["2026-07",4077,3832],["2026-08",3232,3070],["2026-09",4181,3930]]};
+(function(){
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nf=new Intl.NumberFormat('en-US',{maximumFractionDigits:0});
+const pct=(x,d=1)=>isFinite(x)?(x*100).toFixed(d)+'%':'—';
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const mLabel=k=>MON[+k.slice(5,7)-1]+'-'+k.slice(2,4);
+const WPM=4.33;
+
+function fromSample(s){
+  return {
+    sales:s.sales.map(r=>({month:r[0],sku:r[1],product:r[2],rdc:r[3],promo:r[4]==='Y',units:+r[5]})),
+    inventory:s.inventory.map(r=>({sku:r[0],product:r[1],rdc:r[2],stock:+r[3],onOrder:+r[4],lt:+r[5]})),
+    orders:s.orders.map(r=>({month:r[0],received:+r[1],fulfilled:+r[2]}))
+  };
+}
+
+// inverse standard normal (Acklam)
+function invNorm(p){
+  const a=[-39.6968302866538,220.946098424521,-275.928510446969,138.357751867269,-30.6647980661472,2.50662827745924],
+  b=[-54.4760987982241,161.585836858041,-155.698979859887,66.8013118877197,-13.2806815528857],
+  c=[-0.00778489400243029,-0.322396458041136,-2.40075827716184,-2.54973253934373,4.37466414146497,2.93816398269878],
+  d=[0.00778469570904146,0.32246712907004,2.445134137143,3.75440866190742],pl=0.02425;
+  let q,r;
+  if(p<pl){q=Math.sqrt(-2*Math.log(p));return(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
+  if(p>1-pl){q=Math.sqrt(-2*Math.log(1-p));return-(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
+  q=p-0.5;r=q*q;return(((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+}
+
+function compute(data,set){
+  const N=set.win, months=[...new Set(data.sales.map(r=>r.month))].sort();
+  const idx=new Map(months.map((m,i)=>[m,i])), last=months.length-1;
+  const series=new Map(), promoMonths=new Set();
+  for(const r of data.sales){
+    const k=r.sku+'|'+r.rdc; if(!series.has(k))series.set(k,{sku:r.sku,product:r.product,rdc:r.rdc,u:new Array(months.length).fill(null)});
+    const s=series.get(k); s.u[idx.get(r.month)]=(s.u[idx.get(r.month)]||0)+r.units;
+    if(r.promo)promoMonths.add(r.month);
+  }
+  const fcAt=(u,i)=>{if(i<N)return null;let t=0;for(let j=i-N;j<i;j++){if(u[j]==null)return null;t+=u[j];}return t/N;};
+  const start=Math.max(N,last-11);
+  const monthly=[];for(let i=start;i<=last;i++)monthly.push({m:months[i],a:0,f:0,promo:promoMonths.has(months[i])});
+  const prod=new Map(), rdcM=new Map(), rows=[]; let apeSum=0,apeN=0,errSum=0,actSum=0;
+  for(const s of series.values()){
+    if(!prod.has(s.product))prod.set(s.product,{apeSum:0,n:0,err:0,act:0,fc:0});
+    if(!rdcM.has(s.rdc))rdcM.set(s.rdc,{apeSum:0,n:0,err:0,act:0,fc:0});
+    const P=prod.get(s.product), D=rdcM.get(s.rdc);
+    for(let i=0;i<=last;i++){if(s.u[i]==null)continue;const f=fcAt(s.u,i);
+      rows.push({m:months[i],mi:i+1,sku:s.sku,product:s.product,rdc:s.rdc,a:s.u[i],f,err:f==null?null:f-s.u[i],ape:f==null||!s.u[i]?null:Math.abs(f-s.u[i])/s.u[i]});}
+    for(let i=start;i<=last;i++){
+      const a=s.u[i],f=fcAt(s.u,i); if(a==null||f==null)continue;
+      monthly[i-start].a+=a; monthly[i-start].f+=f;
+      errSum+=f-a; actSum+=a; P.err+=f-a; P.act+=a; P.fc+=f; D.err+=f-a; D.act+=a; D.fc+=f;
+      if(a>0){const ape=Math.abs(f-a)/a;apeSum+=ape;apeN++;P.apeSum+=ape;P.n++;D.apeSum+=ape;D.n++;}
+    }
+  }
+  const mape=apeN?apeSum/apeN:NaN, bias=actSum?errSum/actSum:NaN;
+  const agg=([k,v])=>({name:k,act:v.act,fc:v.fc,mape:v.n?v.apeSum/v.n:NaN,bias:v.act?v.err/v.act:NaN});
+  const byProd=[...prod.entries()].map(agg), byRdc=[...rdcM.entries()].map(agg);
+  rows.sort((a,b)=>a.mi-b.mi||a.product.localeCompare(b.product)||a.rdc.localeCompare(b.rdc));
+  const z=invNorm(set.svc);
+  const inv=data.inventory.map(r=>{
+    const s=series.get(r.sku+'|'+r.rdc), u=s?s.u:[];
+    const hist=[];for(let i=Math.max(0,last-11);i<=last;i++)if(u[i]!=null)hist.push(u[i]);
+    const avg=hist.length?hist.reduce((x,y)=>x+y,0)/hist.length:0;
+    const sd=hist.length>1?Math.sqrt(hist.reduce((x,y)=>x+(y-avg)**2,0)/(hist.length-1)):0;
+    const recent=[];for(let i=Math.max(0,last-N+1);i<=last;i++)if(u[i]!=null)recent.push(u[i]);
+    const base=recent.length?recent.reduce((x,y)=>x+y,0)/recent.length:avg;
+    const promo=r.product===set.promoProduct?set.uplift:0, fc=base*(1+promo);
+    const ltm=r.lt/WPM, ltd=fc*ltm, ss=z*sd*Math.sqrt(ltm), rop=ltd+ss, pos=r.stock+r.onOrder;
+    const dos=fc>0?r.stock/(fc/30.4):Infinity, reorder=pos<=rop;
+    return {...r,avg,sd,fc,ltd,ss,rop,pos,dos,reorder,promo:promo>0,sugg:reorder?Math.ceil(rop+fc-pos):0};
+  });
+  // transfer options: spare = position above reorder point at OK locations of the same product
+  // allocate spare stock once: most urgent locations (fewest days of supply) first
+  const spare=new Map(inv.filter(d=>!d.reorder&&d.pos-d.rop>0).map(d=>[d.product+'|'+d.rdc,Math.floor(d.pos-d.rop)]));
+  const actions=inv.filter(r=>r.reorder).sort((a,b)=>a.dos-b.dos).map(r=>{
+    const donors=inv.filter(d=>d.product===r.product&&(spare.get(d.product+'|'+d.rdc)||0)>0).map(d=>({rdc:d.rdc,spare:spare.get(d.product+'|'+d.rdc)})).sort((a,b)=>b.spare-a.spare);
+    const best=donors[0], move=best?Math.min(best.spare,r.sugg):0;
+    if(best)spare.set(r.product+'|'+best.rdc,best.spare-move);
+    return {...r,donor:best,move};
+  });
+  const ord=(data.orders||[]).slice().sort((a,b)=>a.month<b.month?-1:1).slice(-12).map(o=>({...o,rate:o.received?o.fulfilled/o.received:NaN}));
+  const recSum=ord.reduce((x,o)=>x+o.received,0), fulSum=ord.reduce((x,o)=>x+o.fulfilled,0);
+  return {months,monthly,mape,bias,byProd,byRdc,rows,inv,actions,ord,fillRate:recSum?fulSum/recSum:NaN,z,start,last};
+}
+
+/* ---------- charts ---------- */
+function attachTip(box,xs,html){
+  let tip=box.querySelector('.tip'); if(!tip){tip=document.createElement('div');tip.className='tip';tip.hidden=true;box.appendChild(tip);}
+  const svg=box.querySelector('svg');
+  const move=e=>{const r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal,sx=(e.clientX-r.left)*vb.width/r.width;
+    let bi=0,bd=1e9;xs.forEach((x,i)=>{const d=Math.abs(x-sx);if(d<bd){bd=d;bi=i;}});
+    tip.innerHTML=html(bi);tip.hidden=false;
+    const px=xs[bi]*r.width/vb.width, w=tip.offsetWidth, cw=box.clientWidth;
+    tip.style.left=Math.min(Math.max(px,w/2+4),cw-w/2-4)+'px'; tip.style.top=(e.clientY-r.top)+'px';};
+  svg.addEventListener('pointermove',move); svg.addEventListener('pointerleave',()=>tip.hidden=true);
+}
+function niceMax(v){const p=Math.pow(10,Math.floor(Math.log10(v||1)));const n=v/p;return(n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p;}
+function lineChart(box,{labels,series,yMin,yMax,fmt,ticks=5,dots,tipFmt}){
+  const W=Math.max(300,box.clientWidth||600),H=Math.round(Math.min(300,Math.max(200,W*0.42))),L=52,R=12,T=12,B=28;
+  const xs=labels.map((_,i)=>L+(labels.length<2?0:i*(W-L-R)/(labels.length-1)));
+  const y=v=>T+(1-(v-yMin)/(yMax-yMin))*(H-T-B);
+  let g='';
+  for(let i=0;i<=ticks;i++){const v=yMin+(yMax-yMin)*i/ticks,yy=y(v);
+    g+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--line)" stroke-width="1"/><text x="${L-8}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">${fmt(v)}</text>`;}
+  const step=Math.ceil(labels.length/(W<480?4:6));
+  labels.forEach((l,i)=>{if(i%step===0||i===labels.length-1)g+=`<text x="${xs[i]}" y="${H-8}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">${esc(l)}</text>`;});
+  for(const s of series){
+    const pts=s.values.map((v,i)=>v==null?null:[xs[i],y(v)]).filter(Boolean);
+    if(s.area){g+=`<path d="M${pts[0][0]},${H-B} L${pts.map(p=>p.join(',')).join(' L')} L${pts[pts.length-1][0]},${H-B} Z" fill="${s.color}" opacity=".08"/>`;}
+    g+=`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${s.color}" stroke-width="2.5" ${s.dash?'stroke-dasharray="7 5"':''} stroke-linejoin="round" stroke-linecap="round"/>`;
+    if(s.end){const p=pts[pts.length-1];g+=`<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="${s.color}"/>`;}
+  }
+  if(dots)dots.forEach(i=>{const v=series[0].values[i];if(v!=null)g+=`<circle cx="${xs[i]}" cy="${y(v)}" r="5.5" fill="var(--red)" stroke="var(--panel)" stroke-width="2"/>`;});
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(box.dataset.label||'Chart')}">${g}</svg>`;
+  attachTip(box,xs,tipFmt);
+}
+function barChart(box,rows,threshold){
+  const W=Math.max(300,box.clientWidth||400),rowH=34,T=6,B=24,L=Math.min(120,W*0.32),R=52,H=T+B+rows.length*rowH;
+  const max=Math.max(threshold*1.4,...rows.map(r=>r.v).filter(isFinite));
+  const x=v=>L+(v/max)*(W-L-R);
+  let g='';
+  rows.forEach((r,i)=>{const yy=T+i*rowH+6,bad=r.v>threshold;
+    g+=`<text x="${L-10}" y="${yy+15}" text-anchor="end" font-size="12.5" fill="var(--ink)">${esc(r.label)}</text>`;
+    g+=`<rect x="${L}" y="${yy}" width="${Math.max(2,x(r.v)-L)}" height="20" rx="3" fill="${bad?'var(--red)':'var(--blue)'}"/>`;
+    g+=`<text x="${x(r.v)+6}" y="${yy+15}" font-size="12" fill="var(--ink)" font-family="var(--f-mono)">${pct(r.v)}</text>`;});
+  const tx=x(threshold);
+  g+=`<line x1="${tx}" x2="${tx}" y1="${T}" y2="${H-B+2}" stroke="var(--red)" stroke-dasharray="4 4" stroke-width="1.5"/><text x="${tx}" y="${H-6}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">15% review</text>`;
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Forecast error by product">${g}</svg>`;
+}
+
+/* ---------- render ---------- */
+let DATA, SET={win:3,svc:0.95,target:0.92,promoProduct:'',uplift:0}, RDC='All', SFP='All', SFR='All', PAGE='dash', R;
+const PAGES=['dash','sf','acc','inv','ful','set'];
+const n0=v=>v==null||!isFinite(v)?'—':nf.format(v);
+const td=(v,cls='num')=>`<td class="${cls}">${v}</td>`;
+const statusPill=(bad,b,g)=>`<span class="pill ${bad?'bad':'ok'}">${bad?b:g}</span>`;
+function render(){
+  R=compute(DATA,SET);
+  // KPIs
+  $('kAcc').textContent=pct(1-R.mape); $('kAccD').textContent='MAPE '+pct(R.mape)+' · last '+R.monthly.length+' months';
+  $('kBias').textContent=(R.bias>0?'+':'')+pct(R.bias);
+  $('kBiasD').textContent=!isFinite(R.bias)?'—':Math.abs(R.bias)<0.02?'':R.bias>0?'Forecast too high: risk of excess stock':'Forecast too low: risk of back orders';
+  if(R.ord.length){const on=R.fillRate>=SET.target;$('kFill').textContent=pct(R.fillRate);
+    $('kFillD').innerHTML=`<span class="pill ${on?'ok':'bad'}">${on?'On target':'Below target'}</span> target ${pct(SET.target,0)}`;}
+  else{$('kFill').textContent='—';$('kFillD').textContent='Add an Orders sheet to see this';}
+  const reo=R.inv.filter(r=>r.reorder);
+  $('kReo').textContent=reo.length; $('kReoD').textContent='';
+  $('kUnits').textContent=nf.format(reo.reduce((x,r)=>x+r.sugg,0));
+  $('kUnitsD').textContent=SET.uplift>0?`Includes ${SET.promoProduct} +${Math.round(SET.uplift*100)}% promotion`:'Suggested orders';
+  // dashboard tables
+  $('dAvf').innerHTML=R.monthly.map(m=>`<tr><td>${mLabel(m.m)}${m.promo?' <span class="pill warn">Promo</span>':''}</td>${td(n0(m.a))}${td(n0(m.f))}${td((m.a?((m.f-m.a)/m.a>0?'+':'')+pct((m.f-m.a)/m.a):'—'))}</tr>`).join('');
+  $('dAcc').innerHTML=R.byProd.map(p=>`<tr><td>${esc(p.name)}</td>${td(pct(p.mape))}${td((p.bias>0?'+':'')+pct(p.bias))}<td class="c">${statusPill(p.mape>0.15,'Review','OK')}</td></tr>`).join('');
+  $('dInv').innerHTML=R.inv.map(r=>`<tr class="${r.reorder?'hl':''}"><td>${esc(r.product)}</td><td>${esc(r.rdc)}</td>${td(n0(r.pos))}${td(n0(r.rop))}<td class="c">${statusPill(r.reorder,'Reorder','OK')}</td>${td(r.sugg?nf.format(r.sugg):'–')}</tr>`).join('');
+  $('actions').innerHTML=R.actions.length?R.actions.map(a=>`<div class="act"><span class="tag"></span><div><h3>${esc(a.product)} · ${esc(a.rdc)}</h3>
+    <p>Position ${nf.format(a.pos)} vs. reorder point ${nf.format(a.rop)} · ${Math.round(a.dos)} days of supply, lead time ${a.lt} weeks${a.promo?' · promotion active':''}.</p>
+    <p>${a.donor&&a.move>0?`Option: move ${nf.format(a.move)} units from ${esc(a.donor.rdc)} (${nf.format(a.donor.spare)} above its reorder point)${a.move<a.sugg?`, then order the remaining ${nf.format(a.sugg-a.move)}`:''}.`:'No other RDC has spare stock for this product: order from the factory or supplier.'}</p></div>
+    <div class="qty">${nf.format(a.sugg)}<small>suggested order</small></div></div>`).join(''):'<p class="empty">All locations are above their reorder point. Try a promotion scenario in Settings &amp; data.</p>';
+  renderSF(); renderAcc(); renderInv(); renderFul();
+  if(PAGE==='dash')drawDash();
+  if(PAGE==='ful')drawFill($('fill2'));
+}
+function drawDash(){
+  const avf=$('avf'); avf.dataset.label='Actual vs forecast units per month';
+  const mx=niceMax(Math.max(...R.monthly.flatMap(m=>[m.a,m.f])));
+  lineChart(avf,{labels:R.monthly.map(m=>mLabel(m.m)),series:[{values:R.monthly.map(m=>m.a),color:'var(--blue)',area:true,end:true},{values:R.monthly.map(m=>m.f),color:'var(--red)',dash:true}],
+    yMin:0,yMax:mx,fmt:v=>v>=1000?(v/1000).toFixed(v%1000?1:0)+'k':nf.format(v),dots:R.monthly.map((m,i)=>m.promo?i:-1).filter(i=>i>=0),
+    tipFmt:i=>{const m=R.monthly[i],e=m.a?(m.f-m.a)/m.a:0;return `${mLabel(m.m)}${m.promo?' · promotion':''}<br>Actual <b>${nf.format(m.a)}</b><br>Forecast <b>${nf.format(m.f)}</b><br>Error <b>${(e>0?'+':'')+pct(e)}</b>`;}});
+  $('avfNote').textContent=`All products and RDCs, units per month, ${mLabel(R.monthly[0].m)} to ${mLabel(R.monthly[R.monthly.length-1].m)}.`;
+  drawFill($('fill'));
+}
+function drawFill(box){
+  if(!R.ord.length){box.innerHTML='<p class="empty">No Orders sheet in this file.</p>';return;}
+  box.dataset.label='Fulfillment rate per month';
+  const lo=Math.min(0.8,Math.floor(Math.min(...R.ord.map(o=>o.rate),SET.target)*20)/20);
+  lineChart(box,{labels:R.ord.map(o=>mLabel(o.month)),series:[{values:R.ord.map(o=>o.rate),color:'var(--blue)',end:true},{values:R.ord.map(()=>SET.target),color:'var(--red)',dash:true}],
+    yMin:lo,yMax:1,ticks:4,fmt:v=>Math.round(v*100)+'%',tipFmt:i=>{const o=R.ord[i];return `${mLabel(o.month)}<br>Fulfillment <b>${pct(o.rate)}</b><br>${nf.format(o.fulfilled)} of ${nf.format(o.received)} orders`;}});
+}
+function chips(el,items,cur,attr){el.innerHTML=items.map(v=>`<button type="button" class="pill-btn" data-${attr}="${esc(v)}" aria-pressed="${v===cur}">${v==='All'?'All':v==='__reorder'?'Reorder only':esc(v)}</button>`).join('');}
+function renderSF(){
+  chips($('sfProd'),['All',...new Set(R.rows.map(r=>r.product))],SFP,'p');
+  chips($('sfRdc'),['All',...new Set(R.rows.map(r=>r.rdc))],SFR,'r');
+  const rows=R.rows.filter(r=>(SFP==='All'||r.product===SFP)&&(SFR==='All'||r.rdc===SFR));
+  $('sfCount').textContent=nf.format(rows.length)+' rows';
+  $('sfBody').innerHTML=rows.map(r=>`<tr><td>${mLabel(r.m)}</td><td>${esc(r.product)}</td>${td(r.mi)}<td>${esc(r.sku)}</td><td>${esc(r.rdc)}</td>${td(n0(r.a))}${td(r.f==null?'—':nf.format(r.f))}${td(r.err==null?'—':(r.err>0?'+':'')+nf.format(r.err))}${td(r.ape==null?'—':pct(r.ape))}</tr>`).join('');
+}
+function accRows(list){return list.map(p=>`<tr><td>${esc(p.name)}</td>${td(n0(p.act))}${td(n0(p.fc))}${td(pct(p.mape))}${td(pct(1-p.mape))}${td((p.bias>0?'+':'')+pct(p.bias))}<td class="c">${statusPill(p.mape>0.15,'Review','OK')}</td></tr>`).join('');}
+function renderAcc(){
+  const tot={name:'Total',act:R.byProd.reduce((x,p)=>x+p.act,0),fc:R.byProd.reduce((x,p)=>x+p.fc,0),mape:R.mape,bias:R.bias};
+  $('accProd').innerHTML=accRows(R.byProd)+accRows([tot]).replace('<tr>','<tr class="tot">');
+  $('accRdc').innerHTML=accRows(R.byRdc);
+  $('accNote').textContent=`${mLabel(R.monthly[0].m)} to ${mLabel(R.monthly[R.monthly.length-1].m)}, ${SET.win}-month moving-average forecast.`;
+}
+function renderInv(){
+  chips($('filters'),['All',...new Set(R.inv.map(r=>r.rdc)),'__reorder'],RDC,'rdc');
+  const rows=R.inv.filter(r=>RDC==='All'||(RDC==='__reorder'?r.reorder:r.rdc===RDC));
+  $('invBody').innerHTML=rows.map(r=>`<tr class="${r.reorder?'hl':''}"><td>${esc(r.product)}${r.promo?' <span class="pill warn">Promo</span>':''}</td><td>${esc(r.rdc)}</td>${td(n0(r.stock))}${td(n0(r.onOrder))}${td(r.lt)}${td(n0(r.avg))}${td(n0(r.sd))}${td(n0(r.fc))}${td(n0(r.ltd))}${td(n0(r.ss))}${td(n0(r.rop))}${td(n0(r.pos))}${td(isFinite(r.dos)?Math.round(r.dos):'—')}<td class="c">${statusPill(r.reorder,'Reorder','OK')}</td>${td(r.sugg?nf.format(r.sugg):'–')}</tr>`).join('');
+}
+function renderFul(){
+  if(!R.ord.length){$('fulBody').innerHTML='<tr><td colspan="6" style="text-align:left">No Orders sheet in this file.</td></tr>';return;}
+  const rec=R.ord.reduce((x,o)=>x+o.received,0),ful=R.ord.reduce((x,o)=>x+o.fulfilled,0);
+  $('fulBody').innerHTML=R.ord.map(o=>`<tr><td>${mLabel(o.month)}</td>${td(n0(o.received))}${td(n0(o.fulfilled))}${td(pct(o.rate))}${td(pct(SET.target,0))}<td class="c">${statusPill(o.rate<SET.target,'Below target','On target')}</td></tr>`).join('')+
+    `<tr class="tot"><td>${R.ord.length}-month total</td>${td(n0(rec))}${td(n0(ful))}${td(pct(R.fillRate))}${td(pct(SET.target,0))}<td class="c">${statusPill(R.fillRate<SET.target,'Below target','On target')}</td></tr>`;
+}
+$('filters').addEventListener('click',e=>{const b=e.target.closest('[data-rdc]');if(!b)return;RDC=b.dataset.rdc;renderInv();});
+$('sfProd').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(!b)return;SFP=b.dataset.p;renderSF();});
+$('sfRdc').addEventListener('click',e=>{const b=e.target.closest('[data-r]');if(!b)return;SFR=b.dataset.r;renderSF();});
+function showTab(t){PAGE=t;PAGES.forEach(p=>{$('pg-'+p).hidden=p!==t;$('tab-'+p).setAttribute('aria-selected',p===t);});
+  if(t==='dash')drawDash(); if(t==='ful')drawFill($('fill2'));}
+PAGES.forEach(p=>$('tab-'+p).addEventListener('click',()=>showTab(p)));
+
+function fillProducts(){
+  const prods=[...new Set(DATA.inventory.map(r=>r.product))];
+  if(!prods.includes(SET.promoProduct))SET.promoProduct=prods[0]||'';
+  $('promoProd').innerHTML=prods.map(p=>`<option${p===SET.promoProduct?' selected':''}>${esc(p)}</option>`).join('');
+}
+function load(data,name){DATA=data;RDC='All';SFP='All';SFR='All';fillProducts();render();}
+
+$('promoProd').addEventListener('change',e=>{SET.promoProduct=e.target.value;render();});
+$('uplift').addEventListener('input',e=>{SET.uplift=+e.target.value/100;$('upliftOut').textContent=e.target.value+'%';render();});
+$('svc').addEventListener('change',e=>{SET.svc=+e.target.value;render();});
+$('win').addEventListener('change',e=>{SET.win=+e.target.value;render();});
+$('target').addEventListener('change',e=>{const v=+e.target.value;if(v>=50&&v<=100){SET.target=v/100;render();}});
+let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(PAGE==='dash')drawDash();if(PAGE==='ful')drawFill($('fill2'));},150);});
+
+/* ---------- Excel upload ---------- */
+const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+const ALIAS={month:['month','date','period','calendarmonth','fiscalperiod'],sku:['sku','material','materialnumber','item','itemnumber','productid'],
+  product:['product','productname','materialdescription','description','productgroup'],rdc:['rdc','location','plant','dc','warehouse','distributioncenter','site'],
+  promo:['promo','promotion'],units:['unitssold','units','sales','salesqty','quantity','qty','demand','invoicedquantity'],
+  stock:['currentstock','stock','onhand','unrestrictedstock','unrestricted','availablestock'],onOrder:['onorder','openorders','openpoqty','intransit','openorderquantity'],
+  lt:['leadtimeweeks','leadtime','leadtimewks','plannedleadtimeweeks'],received:['ordersreceived','orders','orderlines','totalorders'],
+  fulfilled:['fulfilledontimecomplete','fulfilledontimeandcomplete','fulfilled','otif','ontimeinfull']};
+function pick(row,key){const keys=Object.keys(row);for(const a of ALIAS[key]){const k=keys.find(k=>norm(k)===a);if(k!==undefined)return row[k];}return undefined;}
+function toMonth(v){
+  if(v instanceof Date&&!isNaN(v))return v.getFullYear()+'-'+String(v.getMonth()+1).padStart(2,'0');
+  if(typeof v==='number'&&v>20000){const d=new Date(Math.round((v-25569)*864e5));return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');}
+  const s=String(v||'').trim();let m=s.match(/^(\d{4})[-\/.](\d{1,2})/);if(m)return m[1]+'-'+m[2].padStart(2,'0');
+  m=s.match(/^(\d{1,2})[-\/.](\d{4})$/);if(m)return m[2]+'-'+m[1].padStart(2,'0');
+  m=s.match(/^([A-Za-z]{3})[A-Za-z]*[-\s'.]*(\d{2}|\d{4})$/);if(m){const i=MON.findIndex(x=>x.toLowerCase()===m[1].toLowerCase());if(i>=0)return(m[2].length===2?'20'+m[2]:m[2])+'-'+String(i+1).padStart(2,'0');}
+  const d=new Date(s);return isNaN(d)?null:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+}
+const num=v=>{const n=typeof v==='number'?v:parseFloat(String(v??'').replace(/,/g,''));return isFinite(n)?n:NaN;};
+function findSheet(wb,words){const n=wb.SheetNames.find(s=>words.some(w=>norm(s).includes(w)));return n?XLSX.utils.sheet_to_json(wb.Sheets[n],{defval:''}):null;}
+function parseWorkbook(wb){
+  const sRows=findSheet(wb,['sales','demand','history']), iRows=findSheet(wb,['inventory','stock']), oRows=findSheet(wb,['order','fulfil']);
+  if(!sRows)throw new Error('No "Sales" sheet found. Name the sheet with monthly sales "Sales".');
+  if(!iRows)throw new Error('No "Inventory" sheet found. Add a sheet named "Inventory" with stock, on order and lead time.');
+  const sales=[];sRows.forEach((r,i)=>{const month=toMonth(pick(r,'month')),sku=pick(r,'sku'),rdc=pick(r,'rdc'),units=num(pick(r,'units'));
+    if(!month&&!sku&&!units)return; if(!month||sku===undefined||sku===''||rdc===undefined||rdc===''||isNaN(units))throw new Error(`Sales row ${i+2}: needs Month, SKU, RDC and Units Sold.`);
+    const p=pick(r,'product');sales.push({month,sku:String(sku),product:String(p||sku),rdc:String(rdc),promo:/^(y|yes|1|true|x)$/i.test(String(pick(r,'promo')||'')),units});});
+  const inventory=[];iRows.forEach((r,i)=>{const sku=pick(r,'sku'),rdc=pick(r,'rdc');if((sku===undefined||sku==='')&&(rdc===undefined||rdc===''))return;
+    const stock=num(pick(r,'stock')),oo=num(pick(r,'onOrder')),lt=num(pick(r,'lt'));
+    if(isNaN(stock)||isNaN(lt))throw new Error(`Inventory row ${i+2}: needs Current Stock and Lead Time (weeks).`);
+    const p=pick(r,'product');inventory.push({sku:String(sku),product:String(p||sku),rdc:String(rdc),stock,onOrder:isNaN(oo)?0:oo,lt});});
+  const months=new Set(sales.map(s=>s.month));
+  if(months.size<SET.win+3)throw new Error(`Sales covers ${months.size} months. Add at least ${SET.win+3} months of history.`);
+  if(!inventory.length)throw new Error('The Inventory sheet has no rows.');
+  const keys=new Set(sales.map(s=>s.sku+'|'+s.rdc)),miss=inventory.filter(r=>!keys.has(r.sku+'|'+r.rdc));
+  const orders=oRows?oRows.map(r=>({month:toMonth(pick(r,'month')),received:num(pick(r,'received')),fulfilled:num(pick(r,'fulfilled'))})).filter(o=>o.month&&!isNaN(o.received)&&!isNaN(o.fulfilled)):[];
+  return {data:{sales,inventory,orders},warn:miss.length?` ${miss.length} inventory row(s) have no matching sales history.`:''};
+}
+function showMsg(t,ok){const m=$('msg');m.textContent=t;m.className='msg '+(ok?'ok':'err');m.hidden=false;}
+function handleFile(f){
+  if(!f)return;
+  if(typeof XLSX==='undefined'){showMsg('The Excel reader didn\'t load. Check your connection and reload the page.',false);return;}
+  const rd=new FileReader();
+  rd.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});const {data,warn}=parseWorkbook(wb);
+      load(data,f.name);const m=new Set(data.sales.map(s=>s.month)).size;
+      $('msg').hidden=true;}
+    catch(err){showMsg('Couldn\'t read '+f.name+'. '+err.message,false);}};
+  rd.onerror=()=>showMsg('Couldn\'t open the file. Try saving it again as .xlsx.',false);
+  rd.readAsArrayBuffer(f);
+}
+$('uploadBtn').addEventListener('click',()=>$('fileIn').click());
+$('fileIn').addEventListener('change',e=>{handleFile(e.target.files[0]);e.target.value='';});
+const drop=$('drop');
+['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over');}));
+['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over');}));
+drop.addEventListener('drop',e=>handleFile(e.dataTransfer.files[0]));
+
+load(fromSample(SAMPLE),'Sample data (fictional)');
+const h=location.hash.slice(1);if(PAGES.includes(h))showTab(h);
+})();
+</script>
+</body></html>
