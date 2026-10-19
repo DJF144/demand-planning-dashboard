@@ -141,7 +141,6 @@ footer{color:var(--muted);font-size:12px}
       <button type="button" class="tab" role="tab" id="tab-sf" aria-controls="pg-sf" aria-selected="false">Forecast</button>
       <button type="button" class="tab" role="tab" id="tab-acc" aria-controls="pg-acc" aria-selected="false">Accuracy</button>
       <button type="button" class="tab" role="tab" id="tab-inv" aria-controls="pg-inv" aria-selected="false">Inventory</button>
-      <button type="button" class="tab" role="tab" id="tab-ful" aria-controls="pg-ful" aria-selected="false">Fulfillment</button>
       <button type="button" class="tab" role="tab" id="tab-set" aria-controls="pg-set" aria-selected="false">Settings</button>
     </nav>
   </div>
@@ -223,15 +222,6 @@ footer{color:var(--muted);font-size:12px}
         <thead><tr><th>SKU</th><th>Product</th><th>RDC</th><th>Current Stock</th><th>On Order</th><th>Lead Time (weeks)</th><th>Avg Monthly Demand (12 mo)</th><th>Demand Std Dev (12 mo)</th><th>Next-Month Forecast</th><th>Lead-Time Demand</th><th>Safety Stock</th><th>Reorder Point</th><th>Inventory Position</th><th>Days of Supply</th><th class="c">Status</th><th>Suggested Order Qty</th></tr></thead>
         <tbody id="invBody"></tbody>
       </table></div>
-    </section>
-  </div>
-
-  <div id="pg-ful" class="page" role="tabpanel" aria-labelledby="tab-ful" hidden>
-    <section class="panel" aria-labelledby="fulH">
-      <h2 id="fulH">Order fulfillment</h2>
-      <div class="chart" id="fill2"></div>
-      <div class="legend" style="margin-bottom:14px"><span><i class="sw" style="border-color:var(--blue)"></i>Fulfillment rate</span><span><i class="sw dash" style="border-color:var(--red)"></i>Target</span></div>
-      <div class="tbl"><table><thead><tr><th>Month</th><th>Orders</th><th>OTIF</th><th>Fulfillment rate</th><th>Target</th><th class="c">Status</th></tr></thead><tbody id="fulBody"></tbody></table></div>
     </section>
   </div>
 
@@ -439,7 +429,7 @@ function colChart(box,{labels,series,fmt,tipFmt}){
 
 /* ---------- render ---------- */
 let DATA, SET={win:3,svc:0.95,target:0.92,promoProduct:'',uplift:0,season:true,growth:0.05,tol:0.05}, RDC='All', SFP='All', SFR='All', PAGE='dash', R;
-const PAGES=['dash','sf','acc','inv','ful','set'];
+const PAGES=['dash','sf','acc','inv','set'];
 const n0=v=>v==null||!isFinite(v)?'—':nf.format(v);
 const td=(v,cls='num')=>`<td class="${cls}">${v}</td>`;
 const statusPill=(bad,b,g)=>`<span class="pill ${bad?'bad':'ok'}">${bad?b:g}</span>`;
@@ -464,9 +454,8 @@ function render(){
     <p>Position ${nf.format(a.pos)} · ROP ${nf.format(a.rop)} · DOS ${Math.round(a.dos)} · LT ${a.lt} wk${a.promo?' · promotion':''}</p>
     <p>${a.donor&&a.move>0?`Proposal: transfer ${nf.format(a.move)} from ${esc(a.donor.rdc)}${a.move<a.sugg?` · order ${nf.format(a.sugg-a.move)} from plant`:''}`:`Proposal: order ${nf.format(a.sugg)} from plant · no transfer stock available`}</p></div>
     <div class="qty">${nf.format(a.sugg)}<small>proposed qty</small></div></div>`).join(''):'<p class="empty">No exceptions.</p>';
-  renderSF(); renderAcc(); renderInv(); renderFul();
+  renderSF(); renderAcc(); renderInv();
   if(PAGE==='dash')drawDash();
-  if(PAGE==='ful')drawFill($('fill2'));
 }
 function drawDash(){
   const avf=$('avf'); avf.dataset.label='Actual vs forecast units per month';
@@ -503,17 +492,11 @@ function renderInv(){
   const rows=R.inv.filter(r=>RDC==='All'||(RDC==='__reorder'?r.reorder:r.rdc===RDC));
   $('invBody').innerHTML=rows.map(r=>`<tr class="${r.reorder?'hl':''}"><td>${esc(r.sku)}</td><td>${esc(r.product)}${r.promo?' <span class="pill warn">Promo</span>':''}</td><td>${esc(r.rdc)}</td>${td(n0(r.stock))}${td(n0(r.onOrder))}${td(r.lt)}${td(n0(r.avg))}${td(n0(r.sd))}${td(n0(r.fc))}${td(n0(r.ltd))}${td(n0(r.ss))}${td(n0(r.rop))}${td(n0(r.pos))}${td(isFinite(r.dos)?Math.round(r.dos):'—')}<td class="c">${statusPill(r.reorder,'Reorder','OK')}</td>${td(r.sugg?nf.format(r.sugg):'–')}</tr>`).join('');
 }
-function renderFul(){
-  if(!R.ord.length){$('fulBody').innerHTML='<tr><td colspan="6" style="text-align:left">No Orders sheet in this file.</td></tr>';return;}
-  const rec=R.ord.reduce((x,o)=>x+o.received,0),ful=R.ord.reduce((x,o)=>x+o.fulfilled,0);
-  $('fulBody').innerHTML=R.ord.map(o=>`<tr><td>${mLabel(o.month)}</td>${td(n0(o.received))}${td(n0(o.fulfilled))}${td(pct(o.rate))}${td(pct(SET.target,0))}<td class="c">${statusPill(o.rate<SET.target,'Below target','On target')}</td></tr>`).join('')+
-    `<tr class="tot"><td>${R.ord.length}-month total</td>${td(n0(rec))}${td(n0(ful))}${td(pct(R.fillRate))}${td(pct(SET.target,0))}<td class="c">${statusPill(R.fillRate<SET.target,'Below target','On target')}</td></tr>`;
-}
 $('filters').addEventListener('click',e=>{const b=e.target.closest('[data-rdc]');if(!b)return;RDC=b.dataset.rdc;renderInv();});
 $('sfProd').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(!b)return;SFP=b.dataset.p;renderSF();});
 $('sfRdc').addEventListener('click',e=>{const b=e.target.closest('[data-r]');if(!b)return;SFR=b.dataset.r;renderSF();});
 function showTab(t){PAGE=t;PAGES.forEach(p=>{$('pg-'+p).hidden=p!==t;$('tab-'+p).setAttribute('aria-selected',p===t);});
-  if(t==='dash')drawDash(); if(t==='ful')drawFill($('fill2'));}
+  if(t==='dash')drawDash();}
 PAGES.forEach(p=>$('tab-'+p).addEventListener('click',()=>showTab(p)));
 
 function fillProducts(){
@@ -529,7 +512,7 @@ $('uplift').addEventListener('input',e=>{SET.uplift=+e.target.value/100;$('uplif
 $('svc').addEventListener('change',e=>{SET.svc=+e.target.value;render();});
 $('win').addEventListener('change',e=>{SET.win=+e.target.value;render();});
 $('target').addEventListener('change',e=>{const v=+e.target.value;if(v>=50&&v<=100){SET.target=v/100;render();}});
-let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(PAGE==='dash')drawDash();if(PAGE==='ful')drawFill($('fill2'));},150);});
+let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(PAGE==='dash')drawDash();},150);});
 
 /* ---------- Excel upload ---------- */
 const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
