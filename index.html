@@ -23,7 +23,7 @@
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.5}
 .wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.ctx-top{font:500 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;opacity:.75;display:flex;gap:8px}
+.ctx-top{font:600 13px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;display:flex;gap:8px;padding-top:2px}
 .ctx{font:500 12px var(--f-mono);opacity:.8;margin:2px 0 4px}
 .hstat{font:500 13px var(--f-mono);color:var(--muted);margin-left:8px;white-space:nowrap}
 .panel h2{margin-bottom:12px}
@@ -136,8 +136,6 @@ footer{color:var(--muted);font-size:12px}
 <header class="band">
   <div class="wrap" style="padding-block:20px 0;display:block">
     <div class="ctx-top"><span>Demand Planning</span><span class="sep">/</span><span>North America</span></div>
-    <h1>Demand Planning Dashboard</h1>
-    <div class="ctx" id="ctx">—</div>
     <nav class="tabs" role="tablist" aria-label="Pages">
       <button type="button" class="tab" role="tab" id="tab-dash" aria-controls="pg-dash" aria-selected="true">Overview</button>
       <button type="button" class="tab" role="tab" id="tab-sf" aria-controls="pg-sf" aria-selected="false">Forecast</button>
@@ -459,7 +457,6 @@ function render(){
   $('kReo').textContent=reo.length; $('kReoD').textContent=`of ${R.inv.length} locations`;
   $('kUnits').textContent=nf.format(reo.reduce((x,r)=>x+r.sugg,0));
   $('kUnitsD').textContent=SET.uplift>0?`Units · incl. promotion ${SET.promoProduct} +${Math.round(SET.uplift*100)}%`:'Units';
-  $('ctx').textContent=`Data through ${mLabel(R.months[R.last])} · Planning month ${mLabel(R.nextM)} · Units · ${SRC}`;
   // dashboard tables
   $('dAvf').innerHTML=R.monthly.map(m=>`<tr><td>${mLabel(m.m)}${m.promo?' <span class="pill warn">Promo</span>':''}</td>${td(n0(m.a))}${td(n0(m.f))}${td((m.a?((m.f-m.a)/m.a>0?'+':'')+pct((m.f-m.a)/m.a):'—'))}</tr>`).join('');
   $('dAcc').innerHTML=R.byProd.map(p=>`<tr><td>${esc(p.name)}</td>${td(pct(p.mape))}${td((p.bias>0?'+':'')+pct(p.bias))}<td class="c">${statusPill(p.mape>0.15,'Review','OK')}</td></tr>`).join('');
