@@ -519,9 +519,9 @@ function render(){
     $('kFillD').innerHTML=`<span class="pill ${on?'ok':'bad'}">${on?'On target':'Below target'}</span> target ${pct(SET.target,0)}`;}
   else{$('kFill').textContent='—';$('kFillD').textContent='Add an Orders sheet to see this';}
   const reo=R.inv.filter(r=>r.reorder);
-  $('kReo').textContent=reo.length; $('kReoD').textContent=`of ${R.inv.length} SKU-locations`;
+  $('kReo').textContent=reo.length; $('kReoD').textContent=`of ${R.inv.length} locations`;
   $('kUnits').textContent=nf.format(reo.reduce((x,r)=>x+r.sugg,0));
-  $('kUnitsD').textContent=SET.uplift>0?`Incl. promotion ${SET.promoProduct} +${Math.round(SET.uplift*100)}%`:'Units across exceptions';
+  $('kUnitsD').textContent=SET.uplift>0?`Units · incl. promotion ${SET.promoProduct} +${Math.round(SET.uplift*100)}%`:'Units';
   $('ctx').textContent=`Data through ${mLabel(R.months[R.last])} · Planning month ${mLabel(R.nextM)} · Units · ${SRC}`;
   // dashboard tables
   $('dAvf').innerHTML=R.monthly.map(m=>`<tr><td>${mLabel(m.m)}${m.promo?' <span class="pill warn">Promo</span>':''}</td>${td(n0(m.a))}${td(n0(m.f))}${td((m.a?((m.f-m.a)/m.a>0?'+':'')+pct((m.f-m.a)/m.a):'—'))}</tr>`).join('');
