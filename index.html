@@ -252,6 +252,17 @@ footer{color:var(--muted);font-size:12px}
           <div class="ctl"><label for="target">Fulfillment target (%)</label><input type="number" id="target" min="50" max="100" step="1" value="92"><span class="help">OTIF target</span></div>
         </div>
       </section>
+
+    <div class="grid2">
+      <section class="panel" aria-labelledby="seaH">
+        <h2 id="seaH">Seasonality index</h2>
+        <div class="chart" id="seaChart"></div>
+      </section>
+      <section class="panel" aria-labelledby="seaT">
+        <h2 id="seaT">Index by month</h2>
+        <div class="tbl compact"><table><thead><tr><th>Month</th><th>Base-year sales</th><th>Season index</th></tr></thead><tbody id="seaBody"></tbody></table></div>
+      </section>
+    </div>
   </div>
 
   <footer>Demo environment · all data is fictional · built by David Fulton</footer>
@@ -364,7 +375,7 @@ function compute(data,set){
   const tdProd=[...pL12.entries()].map(([p,v])=>{const mix=l12?v/l12:0,td=nextPlan*mix,bu=inv.filter(r=>r.product===p).reduce((x,r)=>x+r.fc,0);return {name:p,l12:v,mix,td,bu,gap:td-bu,gp:bu?(td-bu)/bu:0};});
   const tdRdc=inv.map(r=>{const P=tdProd.find(p=>p.name===r.product),pv=pL12.get(r.product)||0,sh=pv?(prL12.get(r.product+'|'+r.rdc)||0)/pv:0,td=(P?P.td:0)*sh;return {product:r.product,rdc:r.rdc,share:sh,td,bu:r.fc,gap:td-r.fc,gp:r.fc?(td-r.fc)/r.fc:0};});
   const top={l12,annual,phase,nextPlan,buTotal,gap:nextPlan-buTotal,gp:buTotal?(nextPlan-buTotal)/buTotal:0,prod:tdProd,rdc:tdRdc};
-  return {months,monthly,mape,bias,byProd,byRdc,rows,inv,actions,ord,fillRate:recSum?fulSum/recSum:NaN,z,start,last,top,season,useS,nextM:nextKey(months[last],1)};
+  return {months,monthly,mape,bias,byProd,byRdc,rows,inv,actions,ord,fillRate:recSum?fulSum/recSum:NaN,z,start,last,top,season,baseTot,useS,nextM:nextKey(months[last],1)};
 }
 
 /* ---------- charts ---------- */
@@ -412,6 +423,19 @@ function barChart(box,rows,threshold){
   box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Forecast error by product">${g}</svg>`;
 }
 
+function seasonChart(box){
+  const W=Math.max(300,box.clientWidth||400),H=Math.round(Math.min(400,Math.max(200,W*0.55))),L=40,RM=8,T=18,B=28;
+  const v=R.season.slice(1),dev=Math.max(0.25,...v.map(x=>Math.abs(x-1)))*1.15,y=x=>T+(1-(x-(1-dev))/(2*dev))*(H-T-B);
+  const gw=(W-L-RM)/12,bw=Math.min(30,gw*0.62),nm=+R.nextM.slice(5,7);
+  let g='';[1-dev,1,1+dev].forEach(t=>{const yy=y(t);g+=`<line x1="${L}" x2="${W-RM}" y1="${yy}" y2="${yy}" stroke="var(--line)"${t===1?' stroke-width="1.5"':''}/><text x="${L-6}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">${t.toFixed(2)}</text>`;});
+  v.forEach((x,i)=>{const cx=L+gw*i+gw/2,y0=y(1),y1=y(x),up=x>=1;
+    g+=`<rect x="${cx-bw/2}" y="${Math.min(y0,y1)}" width="${bw}" height="${Math.max(1,Math.abs(y1-y0))}" rx="2" fill="${i+1===nm?'var(--red)':up?'var(--navy-bar)':'var(--blue)'}"/>`;
+    if(gw>=30)g+=`<text x="${cx}" y="${up?y1-5:y1+13}" text-anchor="middle" font-size="10.5" fill="var(--ink)" font-family="var(--f-mono)">${x.toFixed(2)}</text>`;
+    g+=`<text x="${cx}" y="${H-8}" text-anchor="middle" font-size="11" fill="var(--muted)">${MON[i]}</text>`;});
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Seasonality index by month">${g}</svg>`;
+}
+function renderSeason(){const nm=+R.nextM.slice(5,7);
+  $('seaBody').innerHTML=R.season.slice(1).map((x,i)=>`<tr${i+1===nm?' class="hl2"':''}><td>${MON[i]}${i+1===nm?' <span class="pill warn">Next month</span>':''}</td>${td(n0(R.baseTot[i+1]))}${td(x.toFixed(2))}</tr>`).join('');}
 function colChart(box,{labels,series,fmt,tipFmt}){
   const W=Math.max(300,box.clientWidth||400),L=46,R=8,T=12;
   const gw0=(W-L-R)/labels.length,rot=labels.some(l=>l.length*6.6>gw0-4)&&labels.length<=8,B=rot?62:30;
@@ -455,7 +479,8 @@ function render(){
     <p>Position ${nf.format(a.pos)} · ROP ${nf.format(a.rop)} · DOS ${Math.round(a.dos)} · LT ${a.lt} wk${a.promo?' · promotion':''}</p>
     <p>${a.donor&&a.move>0?`Proposal: transfer ${nf.format(a.move)} from ${esc(a.donor.rdc)}${a.move<a.sugg?` · order ${nf.format(a.sugg-a.move)} from plant`:''}`:`Proposal: order ${nf.format(a.sugg)} from plant · no transfer stock available`}</p></div>
     <div class="qty">${nf.format(a.sugg)}<small>proposed qty</small></div></div>`).join(''):'<p class="empty">No locations to reorder.</p>';
-  renderSF(); renderAcc(); renderInv();
+  renderSF(); renderAcc(); renderInv(); renderSeason();
+  if(PAGE==='set')seasonChart($('seaChart'));
   if(PAGE==='dash')drawDash();
 }
 function drawDash(){
@@ -497,7 +522,7 @@ $('filters').addEventListener('click',e=>{const b=e.target.closest('[data-rdc]')
 $('sfProd').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(!b)return;SFP=b.dataset.p;renderSF();});
 $('sfRdc').addEventListener('click',e=>{const b=e.target.closest('[data-r]');if(!b)return;SFR=b.dataset.r;renderSF();});
 function showTab(t){PAGE=t;PAGES.forEach(p=>{$('pg-'+p).hidden=p!==t;$('tab-'+p).setAttribute('aria-selected',p===t);});
-  if(t==='dash')drawDash();}
+  if(t==='dash')drawDash(); if(t==='set')seasonChart($('seaChart'));}
 PAGES.forEach(p=>$('tab-'+p).addEventListener('click',()=>showTab(p)));
 
 function fillProducts(){
@@ -513,7 +538,7 @@ $('uplift').addEventListener('input',e=>{SET.uplift=+e.target.value/100;$('uplif
 $('svc').addEventListener('change',e=>{SET.svc=+e.target.value;render();});
 $('win').addEventListener('change',e=>{SET.win=+e.target.value;render();});
 $('target').addEventListener('change',e=>{const v=+e.target.value;if(v>=50&&v<=100){SET.target=v/100;render();}});
-let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(PAGE==='dash')drawDash();},150);});
+let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(PAGE==='dash')drawDash();if(PAGE==='set')seasonChart($('seaChart'));},150);});
 
 /* ---------- Excel upload ---------- */
 const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
