@@ -583,7 +583,7 @@ function chips(el,items,cur,attr){el.innerHTML=items.map(v=>`<button type="butto
 function renderSF(){
   chips($('sfProd'),['All',...new Set(R.rows.map(r=>r.product))],SFP,'p');
   chips($('sfRdc'),['All',...new Set(R.rows.map(r=>r.rdc))],SFR,'r');
-  const rows=R.rows.filter(r=>(SFP==='All'||r.product===SFP)&&(SFR==='All'||r.rdc===SFR));
+  const rows=R.rows.filter(r=>r.f!=null&&(SFP==='All'||r.product===SFP)&&(SFR==='All'||r.rdc===SFR));
   $('sfCount').textContent=nf.format(rows.length)+' rows';
   $('sfBody').innerHTML=rows.map(r=>`<tr><td>${mLabel(r.m)}</td><td>${esc(r.product)}</td>${td(r.mi)}<td>${esc(r.sku)}</td><td>${esc(r.rdc)}</td>${td(n0(r.a))}${td(r.f==null?'—':nf.format(r.f))}${td(r.err==null?'—':(r.err>0?'+':'')+nf.format(r.err))}${td(r.ape==null?'—':pct(r.ape))}</tr>`).join('');
 }
