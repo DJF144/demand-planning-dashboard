@@ -143,7 +143,6 @@ footer{color:var(--muted);font-size:12px}
       <button type="button" class="tab" role="tab" id="tab-sf" aria-controls="pg-sf" aria-selected="false">Forecast</button>
       <button type="button" class="tab" role="tab" id="tab-acc" aria-controls="pg-acc" aria-selected="false">Accuracy</button>
       <button type="button" class="tab" role="tab" id="tab-inv" aria-controls="pg-inv" aria-selected="false">Inventory</button>
-      <button type="button" class="tab" role="tab" id="tab-top" aria-controls="pg-top" aria-selected="false">Plan vs. Forecast</button>
       <button type="button" class="tab" role="tab" id="tab-ful" aria-controls="pg-ful" aria-selected="false">Fulfillment</button>
       <button type="button" class="tab" role="tab" id="tab-set" aria-controls="pg-set" aria-selected="false">Settings</button>
     </nav>
@@ -196,12 +195,6 @@ footer{color:var(--muted);font-size:12px}
         <div class="actions" id="actions"></div>
       </section>
     </div>
-
-    <section class="panel" aria-labelledby="dTopH">
-      <h2 id="dTopH">Plan vs. forecast</h2>
-      <div class="chart" id="pvf"></div>
-      <div class="legend"><span><i style="width:11px;height:11px;border-radius:2px;background:var(--navy-bar);display:inline-block"></i>Plan (AOP)</span><span><i style="width:11px;height:11px;border-radius:2px;background:var(--blue);display:inline-block"></i>Forecast</span></div>
-    </section>
   </div>
 
   <div id="pg-sf" class="page" role="tabpanel" aria-labelledby="tab-sf" hidden>
@@ -232,47 +225,6 @@ footer{color:var(--muted);font-size:12px}
         <thead><tr><th>SKU</th><th>Product</th><th>RDC</th><th>Current Stock</th><th>On Order</th><th>Lead Time (weeks)</th><th>Avg Monthly Demand (12 mo)</th><th>Demand Std Dev (12 mo)</th><th>Next-Month Forecast</th><th>Lead-Time Demand</th><th>Safety Stock</th><th>Reorder Point</th><th>Inventory Position</th><th>Days of Supply</th><th class="c">Status</th><th>Suggested Order Qty</th></tr></thead>
         <tbody id="invBody"></tbody>
       </table></div>
-    </section>
-  </div>
-
-  <div id="pg-top" class="page" role="tabpanel" aria-labelledby="tab-top" hidden>
-    <section class="kpis" aria-label="Plan figures">
-      <div class="kpi"><span class="k">Actuals LTM</span><span class="v" id="tL12">—</span><span class="d" id="tL12D">—</span></div>
-      <div class="kpi"><span class="k">Annual plan (AOP)</span><span class="v" id="tAnnual">—</span><span class="d" id="tAnnualD">—</span></div>
-      <div class="kpi"><span class="k">Plan next month</span><span class="v" id="tNext">—</span><span class="d" id="tNextD">—</span></div>
-      <div class="kpi"><span class="k">Forecast next month</span><span class="v" id="tBU">—</span><span class="d" id="tBUD">—</span></div>
-      <div class="kpi"><span class="k">Variance</span><span class="v" id="tGap">—</span><span class="d" id="tGapD">—</span></div>
-    </section>
-
-    <section class="panel" aria-labelledby="tInH">
-      <h2 id="tInH">Plan parameters</h2>
-      <div class="controls">
-        <div class="ctl"><label for="growth">AOP growth vs. LTM (%)</label><input type="number" id="growth" min="-50" max="100" step="1" value="5"><span class="help">Source: Finance</span></div>
-        <div class="ctl"><label for="tol">Variance tolerance (±%)</label><input type="number" id="tol" min="0" max="50" step="1" value="5"><span class="help">Exceptions flagged for S&amp;OP review</span></div>
-      </div>
-    </section>
-
-    <div class="grid2">
-      <section class="panel" aria-labelledby="tPhH">
-        <h2 id="tPhH">AOP monthly phasing</h2>
-        <div class="chart" id="phase"></div>
-      </section>
-      <section class="panel" aria-labelledby="tPhT">
-        <h2 id="tPhT">Phasing table</h2>
-        <div class="tbl compact"><table><thead><tr><th>Month</th><th>Prior year</th><th>Phasing</th><th>AOP</th></tr></thead><tbody id="tPhase"></tbody></table></div>
-      </section>
-    </div>
-
-    <section class="panel" aria-labelledby="tPrH">
-      <h2 id="tPrH">Plan vs. forecast by product</h2>
-      <div class="chart" id="pvf2"></div>
-      <div class="legend"><span><i style="width:11px;height:11px;border-radius:2px;background:var(--navy-bar);display:inline-block"></i>Plan (AOP)</span><span><i style="width:11px;height:11px;border-radius:2px;background:var(--blue);display:inline-block"></i>Forecast</span></div>
-      <div class="tbl" style="margin-top:14px"><table><thead><tr><th>Product</th><th>Actuals LTM</th><th>Mix</th><th>Plan</th><th>Forecast</th><th>Variance</th><th>Variance %</th><th class="c">Status</th></tr></thead><tbody id="tProd"></tbody></table></div>
-    </section>
-
-    <section class="panel" aria-labelledby="tRdH">
-      <h2 id="tRdH">Plan vs. forecast by RDC</h2>
-      <div class="tbl"><table><thead><tr><th>Product</th><th>RDC</th><th>RDC mix</th><th>Plan</th><th>Forecast</th><th>Variance</th><th>Variance %</th><th class="c">Status</th></tr></thead><tbody id="tRdc"></tbody></table></div>
     </section>
   </div>
 
@@ -490,7 +442,7 @@ function colChart(box,{labels,series,fmt,tipFmt}){
 
 /* ---------- render ---------- */
 let DATA, SET={win:3,svc:0.95,target:0.92,promoProduct:'',uplift:0,season:true,growth:0.05,tol:0.05}, RDC='All', SFP='All', SFR='All', PAGE='dash', R;
-const PAGES=['dash','sf','acc','inv','top','ful','set'];
+const PAGES=['dash','sf','acc','inv','ful','set'];
 const n0=v=>v==null||!isFinite(v)?'—':nf.format(v);
 const td=(v,cls='num')=>`<td class="${cls}">${v}</td>`;
 const statusPill=(bad,b,g)=>`<span class="pill ${bad?'bad':'ok'}">${bad?b:g}</span>`;
@@ -516,11 +468,8 @@ function render(){
     <p>Position ${nf.format(a.pos)} · ROP ${nf.format(a.rop)} · DOS ${Math.round(a.dos)} · LT ${a.lt} wk${a.promo?' · promotion':''}</p>
     <p>${a.donor&&a.move>0?`Proposal: transfer ${nf.format(a.move)} from ${esc(a.donor.rdc)}${a.move<a.sugg?` · order ${nf.format(a.sugg-a.move)} from plant`:''}`:`Proposal: order ${nf.format(a.sugg)} from plant · no transfer stock available`}</p></div>
     <div class="qty">${nf.format(a.sugg)}<small>proposed qty</small></div></div>`).join(''):'<p class="empty">No exceptions.</p>';
-  const T=R.top,flag=Math.abs(T.gp)>SET.tol;
-  $('dTopH').innerHTML=`Plan vs. forecast · ${mLabel(R.nextM)} <span class="hstat">${(T.gp>0?'+':'')+pct(T.gp)} ${statusPill(flag,'Review','Aligned')}</span>`;
-  renderSF(); renderAcc(); renderInv(); renderTop(); renderFul();
+  renderSF(); renderAcc(); renderInv(); renderFul();
   if(PAGE==='dash')drawDash();
-  if(PAGE==='top')drawTop();
   if(PAGE==='ful')drawFill($('fill2'));
 }
 function drawDash(){
@@ -530,30 +479,8 @@ function drawDash(){
     yMin:0,yMax:mx,fmt:v=>v>=1000?(v/1000).toFixed(v%1000?1:0)+'k':nf.format(v),dots:R.monthly.map((m,i)=>m.promo?i:-1).filter(i=>i>=0),
     tipFmt:i=>{const m=R.monthly[i],e=m.a?(m.f-m.a)/m.a:0;return `${mLabel(m.m)}${m.promo?' · promotion':''}<br>Actual <b>${nf.format(m.a)}</b><br>Forecast <b>${nf.format(m.f)}</b><br>Error <b>${(e>0?'+':'')+pct(e)}</b>`;}});
   drawFill($('fill'));
-  drawPvF($('pvf'));
 }
 const kfmt=v=>v>=1000?(v/1000).toFixed(v%1000?1:0)+'k':nf.format(v);
-function drawPvF(box){const P=R.top.prod;box.dataset.label='Plan vs forecast by product';
-  colChart(box,{labels:P.map(p=>p.name),series:[{values:P.map(p=>p.td),color:'var(--navy-bar)'},{values:P.map(p=>p.bu),color:'var(--blue)'}],fmt:kfmt,
-    tipFmt:i=>{const p=P[i];return `${esc(p.name)}<br>Plan <b>${nf.format(p.td)}</b><br>Forecast <b>${nf.format(p.bu)}</b><br>Variance <b>${(p.gp>0?'+':'')+pct(p.gp)}</b>`;}});}
-function drawTop(){const T=R.top,ph=$('phase');ph.dataset.label='Annual plan by month';
-  colChart(ph,{labels:T.phase.map(p=>mLabel(p.m)),series:[{values:T.phase.map(p=>p.plan),color:'var(--navy-bar)'}],fmt:kfmt,
-    tipFmt:i=>{const p=T.phase[i];return `${mLabel(p.m)}<br>Plan <b>${nf.format(p.plan)}</b><br>Phasing <b>${pct(p.share)}</b>`;}});
-  drawPvF($('pvf2'));}
-function renderTop(){
-  const T=R.top,tol=SET.tol,gpS=g=>(g>0?'+':'')+pct(g),gS=g=>(g>0?'+':'')+nf.format(g),st=g=>`<td class="c">${statusPill(Math.abs(g)>tol,'Review','Aligned')}</td>`;
-  const g=Math.round(SET.growth*100),ph0=mLabel(T.phase[0].m),ph1=mLabel(T.phase[11].m);
-  $('tL12').textContent=nf.format(T.l12); $('tL12D').textContent=`${mLabel(R.months[Math.max(0,R.last-11)])}–${mLabel(R.months[R.last])} · units`;
-  $('tAnnual').textContent=nf.format(T.annual); $('tAnnualD').textContent=`${ph0}–${ph1} · ${g>=0?'+':''}${g}% vs. LTM`;
-  $('tNext').textContent=nf.format(T.nextPlan); $('tNextD').textContent=`AOP · ${mLabel(R.nextM)}`;
-  $('tBU').textContent=nf.format(T.buTotal); $('tBUD').textContent=`Statistical forecast · ${mLabel(R.nextM)}`;
-  $('tGap').textContent=gpS(T.gp); $('tGapD').innerHTML=`${gS(T.gap)} units ${statusPill(Math.abs(T.gp)>tol,'Review','Aligned')}`;
-  $('tPhase').innerHTML=T.phase.map(p=>`<tr><td>${mLabel(p.m)}</td>${td(n0(p.ly))}${td(pct(p.share))}${td(n0(p.plan))}</tr>`).join('')+
-    `<tr class="tot"><td>Total</td>${td(n0(T.phase.reduce((x,p)=>x+p.ly,0)))}${td(pct(T.phase.reduce((x,p)=>x+p.share,0)))}${td(n0(T.phase.reduce((x,p)=>x+p.plan,0)))}</tr>`;
-  const pr=T.prod.map(p=>`<tr><td>${esc(p.name)}</td>${td(n0(p.l12))}${td(pct(p.mix))}${td(n0(p.td))}${td(n0(p.bu))}${td(gS(p.gap))}${td(gpS(p.gp))}${st(p.gp)}</tr>`).join('');
-  $('tProd').innerHTML=pr+`<tr class="tot"><td>Total</td>${td(n0(T.l12))}${td('100.0%')}${td(n0(T.nextPlan))}${td(n0(T.buTotal))}${td(gS(T.gap))}${td(gpS(T.gp))}${st(T.gp)}</tr>`;
-  $('tRdc').innerHTML=T.rdc.map(r=>`<tr><td>${esc(r.product)}</td><td>${esc(r.rdc)}</td>${td(pct(r.share))}${td(n0(r.td))}${td(n0(r.bu))}${td(gS(r.gap))}${td(gpS(r.gp))}${st(r.gp)}</tr>`).join('');
-}
 function drawFill(box){
   if(!R.ord.length){box.innerHTML='<p class="empty">No Orders sheet in this file.</p>';return;}
   box.dataset.label='Fulfillment rate per month';
@@ -590,7 +517,7 @@ $('filters').addEventListener('click',e=>{const b=e.target.closest('[data-rdc]')
 $('sfProd').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(!b)return;SFP=b.dataset.p;renderSF();});
 $('sfRdc').addEventListener('click',e=>{const b=e.target.closest('[data-r]');if(!b)return;SFR=b.dataset.r;renderSF();});
 function showTab(t){PAGE=t;PAGES.forEach(p=>{$('pg-'+p).hidden=p!==t;$('tab-'+p).setAttribute('aria-selected',p===t);});
-  if(t==='dash')drawDash(); if(t==='top')drawTop(); if(t==='ful')drawFill($('fill2'));}
+  if(t==='dash')drawDash(); if(t==='ful')drawFill($('fill2'));}
 PAGES.forEach(p=>$('tab-'+p).addEventListener('click',()=>showTab(p)));
 
 function fillProducts(){
@@ -606,10 +533,8 @@ $('uplift').addEventListener('input',e=>{SET.uplift=+e.target.value/100;$('uplif
 $('svc').addEventListener('change',e=>{SET.svc=+e.target.value;render();});
 $('win').addEventListener('change',e=>{SET.win=+e.target.value;render();});
 $('season').addEventListener('change',e=>{SET.season=e.target.value==='on';render();});
-$('growth').addEventListener('change',e=>{const v=+e.target.value;if(v>=-50&&v<=100){SET.growth=v/100;render();}});
-$('tol').addEventListener('change',e=>{const v=+e.target.value;if(v>=0&&v<=50){SET.tol=v/100;render();}});
 $('target').addEventListener('change',e=>{const v=+e.target.value;if(v>=50&&v<=100){SET.target=v/100;render();}});
-let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(PAGE==='dash')drawDash();if(PAGE==='top')drawTop();if(PAGE==='ful')drawFill($('fill2'));},150);});
+let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(PAGE==='dash')drawDash();if(PAGE==='ful')drawFill($('fill2'));},150);});
 
 /* ---------- Excel upload ---------- */
 const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
