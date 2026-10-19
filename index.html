@@ -23,7 +23,8 @@
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.5}
 .wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.ctx-top{font:600 13px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;display:flex;gap:8px;padding-top:2px}
+h1.ctx-title{font:800 clamp(24px,3.4vw,32px)/1.15 var(--f-display);margin:4px 0 2px;letter-spacing:-.01em}
+h1.ctx-title .sep{opacity:.55;font-weight:500;margin:0 2px}
 .ctx{font:500 12px var(--f-mono);opacity:.8;margin:2px 0 4px}
 .hstat{font:500 13px var(--f-mono);color:var(--muted);margin-left:8px;white-space:nowrap}
 .panel h2{margin-bottom:12px}
@@ -135,7 +136,7 @@ footer{color:var(--muted);font-size:12px}
 </style></head><body>
 <header class="band">
   <div class="wrap" style="padding-block:20px 0;display:block">
-    <div class="ctx-top"><span>Demand Planning</span><span class="sep">/</span><span>North America</span></div>
+    <h1 class="ctx-title">Demand Planning <span class="sep">/</span> North America</h1>
     <nav class="tabs" role="tablist" aria-label="Pages">
       <button type="button" class="tab" role="tab" id="tab-dash" aria-controls="pg-dash" aria-selected="true">Overview</button>
       <button type="button" class="tab" role="tab" id="tab-sf" aria-controls="pg-sf" aria-selected="false">Forecast</button>
