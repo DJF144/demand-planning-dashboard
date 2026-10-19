@@ -87,6 +87,7 @@ th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;whit
 th{font:500 11px var(--f-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);background:var(--soft);position:sticky;top:0}
 td:nth-child(-n+2),th:nth-child(-n+2){text-align:left}
 tr:last-child td{border-bottom:0}
+.inv3 td:nth-child(3),.inv3 th:nth-child(3){text-align:left}
 td.num{font-family:var(--f-mono);font-size:13px}
 tr.hl td{background:color-mix(in srgb,var(--bad-bg) 55%,transparent)}
 .drop{border:2px dashed var(--line);border-radius:10px;padding:16px;text-align:center;color:var(--muted)}
@@ -227,8 +228,8 @@ footer{color:var(--muted);font-size:12px}
     <section class="panel" aria-labelledby="invH">
       <h2 id="invH">Inventory and replenishment</h2>
       <div class="filters" id="filters" role="group" aria-label="Filter by RDC"></div>
-      <div class="tbl"><table>
-        <thead><tr><th>Product</th><th>RDC</th><th>On hand</th><th>On order</th><th>LT (wk)</th><th>Avg demand</th><th>Std dev</th><th>Fcst next month</th><th>LT demand</th><th>Safety stock</th><th>ROP</th><th>Position</th><th>DOS</th><th class="c">Status</th><th>Proposed qty</th></tr></thead>
+      <div class="tbl"><table class="inv3">
+        <thead><tr><th>SKU</th><th>Product</th><th>RDC</th><th>Current Stock</th><th>On Order</th><th>Lead Time (weeks)</th><th>Avg Monthly Demand (12 mo)</th><th>Demand Std Dev (12 mo)</th><th>Next-Month Forecast</th><th>Lead-Time Demand</th><th>Safety Stock</th><th>Reorder Point</th><th>Inventory Position</th><th>Days of Supply</th><th class="c">Status</th><th>Suggested Order Qty</th></tr></thead>
         <tbody id="invBody"></tbody>
       </table></div>
     </section>
@@ -577,7 +578,7 @@ function renderAcc(){
 function renderInv(){
   chips($('filters'),['All',...new Set(R.inv.map(r=>r.rdc)),'__reorder'],RDC,'rdc');
   const rows=R.inv.filter(r=>RDC==='All'||(RDC==='__reorder'?r.reorder:r.rdc===RDC));
-  $('invBody').innerHTML=rows.map(r=>`<tr class="${r.reorder?'hl':''}"><td>${esc(r.product)}${r.promo?' <span class="pill warn">Promo</span>':''}</td><td>${esc(r.rdc)}</td>${td(n0(r.stock))}${td(n0(r.onOrder))}${td(r.lt)}${td(n0(r.avg))}${td(n0(r.sd))}${td(n0(r.fc))}${td(n0(r.ltd))}${td(n0(r.ss))}${td(n0(r.rop))}${td(n0(r.pos))}${td(isFinite(r.dos)?Math.round(r.dos):'—')}<td class="c">${statusPill(r.reorder,'Reorder','OK')}</td>${td(r.sugg?nf.format(r.sugg):'–')}</tr>`).join('');
+  $('invBody').innerHTML=rows.map(r=>`<tr class="${r.reorder?'hl':''}"><td>${esc(r.sku)}</td><td>${esc(r.product)}${r.promo?' <span class="pill warn">Promo</span>':''}</td><td>${esc(r.rdc)}</td>${td(n0(r.stock))}${td(n0(r.onOrder))}${td(r.lt)}${td(n0(r.avg))}${td(n0(r.sd))}${td(n0(r.fc))}${td(n0(r.ltd))}${td(n0(r.ss))}${td(n0(r.rop))}${td(n0(r.pos))}${td(isFinite(r.dos)?Math.round(r.dos):'—')}<td class="c">${statusPill(r.reorder,'Reorder','OK')}</td>${td(r.sugg?nf.format(r.sugg):'–')}</tr>`).join('');
 }
 function renderFul(){
   if(!R.ord.length){$('fulBody').innerHTML='<tr><td colspan="6" style="text-align:left">No Orders sheet in this file.</td></tr>';return;}
