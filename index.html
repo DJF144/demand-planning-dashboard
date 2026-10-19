@@ -188,7 +188,7 @@ footer{color:var(--muted);font-size:12px}
         <div class="tbl compact"><table><thead><tr><th>Product</th><th>RDC</th><th>Position</th><th>Reorder point</th><th class="c">Status</th><th>Order qty</th></tr></thead><tbody id="dInv"></tbody></table></div>
       </section>
       <section class="panel" aria-labelledby="actH">
-        <h2 id="actH">Exceptions</h2>
+        <h2 id="actH">Locations to reorder</h2>
         <div class="actions" id="actions"></div>
       </section>
     </div>
@@ -453,7 +453,7 @@ function render(){
   $('actions').innerHTML=R.actions.length?R.actions.map(a=>`<div class="act"><span class="tag"></span><div><h3>${esc(a.product)} · ${esc(a.rdc)}</h3>
     <p>Position ${nf.format(a.pos)} · ROP ${nf.format(a.rop)} · DOS ${Math.round(a.dos)} · LT ${a.lt} wk${a.promo?' · promotion':''}</p>
     <p>${a.donor&&a.move>0?`Proposal: transfer ${nf.format(a.move)} from ${esc(a.donor.rdc)}${a.move<a.sugg?` · order ${nf.format(a.sugg-a.move)} from plant`:''}`:`Proposal: order ${nf.format(a.sugg)} from plant · no transfer stock available`}</p></div>
-    <div class="qty">${nf.format(a.sugg)}<small>proposed qty</small></div></div>`).join(''):'<p class="empty">No exceptions.</p>';
+    <div class="qty">${nf.format(a.sugg)}<small>proposed qty</small></div></div>`).join(''):'<p class="empty">No locations to reorder.</p>';
   renderSF(); renderAcc(); renderInv();
   if(PAGE==='dash')drawDash();
 }
@@ -473,7 +473,7 @@ function drawFill(box){
   lineChart(box,{labels:R.ord.map(o=>mLabel(o.month)),series:[{values:R.ord.map(o=>o.rate),color:'var(--blue)',end:true},{values:R.ord.map(()=>SET.target),color:'var(--red)',dash:true}],
     yMin:lo,yMax:1,ticks:4,fmt:v=>Math.round(v*100)+'%',tipFmt:i=>{const o=R.ord[i];return `${mLabel(o.month)}<br>Fulfillment <b>${pct(o.rate)}</b><br>${nf.format(o.fulfilled)} of ${nf.format(o.received)} orders`;}});
 }
-function chips(el,items,cur,attr){el.innerHTML=items.map(v=>`<button type="button" class="pill-btn" data-${attr}="${esc(v)}" aria-pressed="${v===cur}">${v==='All'?'All':v==='__reorder'?'Exceptions only':esc(v)}</button>`).join('');}
+function chips(el,items,cur,attr){el.innerHTML=items.map(v=>`<button type="button" class="pill-btn" data-${attr}="${esc(v)}" aria-pressed="${v===cur}">${v==='All'?'All':v==='__reorder'?'Reorder only':esc(v)}</button>`).join('');}
 function renderSF(){
   chips($('sfProd'),['All',...new Set(R.rows.map(r=>r.product))],SFP,'p');
   chips($('sfRdc'),['All',...new Set(R.rows.map(r=>r.rdc))],SFR,'r');
