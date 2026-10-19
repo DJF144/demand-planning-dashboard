@@ -128,6 +128,10 @@ tr.hl td{background:color-mix(in srgb,var(--bad-bg) 55%,transparent)}
 .tbl.tall{max-height:640px;overflow:auto}
 .filters .flabel{font:500 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);align-self:center;min-width:64px}
 .fgrp{display:flex;flex-wrap:wrap;gap:8px}
+.sfkpi{display:inline-grid;gap:2px;padding:10px 14px;margin-bottom:12px;border:1px solid var(--line);border-radius:8px;background:var(--soft)}
+.sfkpi .k{font:500 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sfkpi .v{font:800 24px/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.sfkpi .d{font-size:12.5px;color:var(--muted)}
 .count{margin-left:auto;align-self:center;font:500 12px var(--f-mono);color:var(--muted)}
 th.c,td.c{text-align:center!important}
 tr.tot td{font-weight:600;background:var(--soft)}
@@ -198,6 +202,7 @@ footer{color:var(--muted);font-size:12px}
   <div id="pg-sf" class="page" role="tabpanel" aria-labelledby="tab-sf" hidden>
     <section class="panel" aria-labelledby="sfH">
       <h2 id="sfH">Forecast detail</h2>
+      <div class="sfkpi"><span class="k">MAPE · last 12 months</span><span class="v" id="sfMape">—</span><span class="d" id="sfMapeD">—</span></div>
       <div class="filters"><span class="flabel">Product</span><span id="sfProd" class="fgrp" role="group" aria-label="Filter by product"></span></div>
       <div class="filters"><span class="flabel">RDC</span><span id="sfRdc" class="fgrp" role="group" aria-label="Filter by RDC"></span><span class="count" id="sfCount"></span></div>
       <div class="tbl tall"><table><thead><tr><th>Month</th><th>Product</th><th>Month #</th><th>SKU</th><th>RDC</th><th>Units sold</th><th>Forecast</th><th>Error (fcst − actual)</th><th>Abs % error</th></tr></thead><tbody id="sfBody"></tbody></table></div>
@@ -505,6 +510,9 @@ function renderSF(){
   chips($('sfRdc'),['All',...new Set(R.rows.map(r=>r.rdc))],SFR,'r');
   const rows=R.rows.filter(r=>r.f!=null&&(SFP==='All'||r.product===SFP)&&(SFR==='All'||r.rdc===SFR));
   $('sfCount').textContent=nf.format(rows.length)+' rows';
+  const l12=rows.filter(r=>r.mi-1>=R.start&&r.ape!=null),m=l12.length?l12.reduce((x,r)=>x+r.ape,0)/l12.length:NaN;
+  $('sfMape').textContent=pct(m);
+  $('sfMapeD').textContent=`${SFP==='All'?'All products':SFP} · ${SFR==='All'?'all RDCs':SFR} · accuracy ${pct(1-m)}`;
   $('sfBody').innerHTML=rows.map(r=>`<tr><td>${mLabel(r.m)}</td><td>${esc(r.product)}</td>${td(r.mi)}<td>${esc(r.sku)}</td><td>${esc(r.rdc)}</td>${td(n0(r.a))}${td(r.f==null?'—':nf.format(r.f))}${td(r.err==null?'—':(r.err>0?'+':'')+nf.format(r.err))}${td(r.ape==null?'—':pct(r.ape))}</tr>`).join('');
 }
 function accRows(list){return list.map(p=>`<tr><td>${esc(p.name)}</td>${td(n0(p.act))}${td(n0(p.fc))}${td(pct(p.mape))}${td(pct(1-p.mape))}${td((p.bias>0?'+':'')+pct(p.bias))}<td class="c">${statusPill(p.mape>0.15,'Review','OK')}</td></tr>`).join('');}
