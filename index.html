@@ -443,7 +443,7 @@ function render(){
     $('kFillD').innerHTML=`<span class="pill ${on?'ok':'bad'}">${on?'On target':'Below target'}</span> target ${pct(SET.target,0)}`;}
   else{$('kFill').textContent='—';$('kFillD').textContent='Add an Orders sheet to see this';}
   const reo=R.inv.filter(r=>r.reorder);
-  $('kReo').textContent=reo.length; $('kReoD').textContent=`of ${R.inv.length} locations`;
+  $('kReo').textContent=reo.length; $('kReoD').textContent='';
   $('kUnits').textContent=nf.format(reo.reduce((x,r)=>x+r.sugg,0));
   $('kUnitsD').textContent=SET.uplift>0?`Units · incl. promotion ${SET.promoProduct} +${Math.round(SET.uplift*100)}%`:'Units';
   // dashboard tables
