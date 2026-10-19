@@ -258,7 +258,6 @@ footer{color:var(--muted);font-size:12px}
         <div class="controls">
           <div class="ctl"><label for="svc">Service level</label><select id="svc"><option value="0.90">90% (z 1.28)</option><option value="0.95" selected>95% (z 1.64)</option><option value="0.98">98% (z 2.05)</option><option value="0.99">99% (z 2.33)</option></select><span class="help">Cycle service level for safety stock</span></div>
           <div class="ctl"><label for="win">Forecast model</label><select id="win"><option value="2">Moving average, 2 months</option><option value="3" selected>Moving average, 3 months</option><option value="4">Moving average, 4 months</option><option value="6">Moving average, 6 months</option></select><span class="help">Statistical baseline</span></div>
-          <div class="ctl"><label for="season">Seasonal adjustment</label><select id="season"><option value="on" selected>On</option><option value="off">Off</option></select><span class="help">Index from base year · requires 12+ months</span></div>
           <div class="ctl"><label for="target">Fulfillment target (%)</label><input type="number" id="target" min="50" max="100" step="1" value="92"><span class="help">OTIF target</span></div>
         </div>
       </section>
@@ -529,7 +528,6 @@ $('promoProd').addEventListener('change',e=>{SET.promoProduct=e.target.value;ren
 $('uplift').addEventListener('input',e=>{SET.uplift=+e.target.value/100;$('upliftOut').textContent=e.target.value+'%';render();});
 $('svc').addEventListener('change',e=>{SET.svc=+e.target.value;render();});
 $('win').addEventListener('change',e=>{SET.win=+e.target.value;render();});
-$('season').addEventListener('change',e=>{SET.season=e.target.value==='on';render();});
 $('target').addEventListener('change',e=>{const v=+e.target.value;if(v>=50&&v<=100){SET.target=v/100;render();}});
 let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(PAGE==='dash')drawDash();if(PAGE==='ful')drawFill($('fill2'));},150);});
 
