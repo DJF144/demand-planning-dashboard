@@ -25,6 +25,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:1
 .wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .ctx-top{font:500 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;opacity:.75;display:flex;gap:8px}
 .ctx{font:500 12px var(--f-mono);opacity:.8;margin:2px 0 4px}
+.hstat{font:500 13px var(--f-mono);color:var(--muted);margin-left:8px;white-space:nowrap}
+.panel h2{margin-bottom:12px}
 header.band{background:var(--navy);color:var(--navy-ink);border-bottom:4px solid var(--red)}
 header .wrap{padding-block:22px 18px;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between}
 .eyebrow{font:500 11px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;opacity:.75}
@@ -162,13 +164,11 @@ footer{color:var(--muted);font-size:12px}
     <div class="grid2">
       <section class="panel" aria-labelledby="avfH">
         <h2 id="avfH">Actual vs. forecast</h2>
-        <p class="note" id="avfNote">—</p>
         <div class="chart" id="avf"></div>
         <div class="legend"><span><i class="sw" style="border-color:var(--blue)"></i>Actual</span><span><i class="sw dash" style="border-color:var(--red)"></i>Forecast</span><span><i style="width:9px;height:9px;border-radius:50%;background:var(--red);display:inline-block"></i>Promotion</span></div>
       </section>
       <section class="panel" aria-labelledby="avfT">
         <h2 id="avfT">Monthly actual vs. forecast</h2>
-        <p class="note">All products · all RDCs · units</p>
         <div class="tbl compact"><table><thead><tr><th>Month</th><th>Actual</th><th>Forecast</th><th>Error</th></tr></thead><tbody id="dAvf"></tbody></table></div>
       </section>
     </div>
@@ -176,12 +176,10 @@ footer{color:var(--muted);font-size:12px}
     <div class="grid2b">
       <section class="panel" aria-labelledby="accT">
         <h2 id="accT">Accuracy by product</h2>
-        <p class="note">Last 12 months · threshold MAPE 15%</p>
         <div class="tbl compact"><table><thead><tr><th>Product</th><th>MAPE</th><th>Bias</th><th class="c">Status</th></tr></thead><tbody id="dAcc"></tbody></table></div>
       </section>
       <section class="panel" aria-labelledby="fillH">
         <h2 id="fillH">Fulfillment rate</h2>
-        <p class="note">On time and in full · last 12 months</p>
         <div class="chart" id="fill"></div>
         <div class="legend"><span><i class="sw" style="border-color:var(--blue)"></i>Fulfillment rate</span><span><i class="sw dash" style="border-color:var(--red)"></i>Target</span></div>
       </section>
@@ -190,19 +188,16 @@ footer{color:var(--muted);font-size:12px}
     <div class="grid2b">
       <section class="panel" aria-labelledby="invT">
         <h2 id="invT">Inventory position</h2>
-        <p class="note">Position = on hand + on order</p>
         <div class="tbl compact"><table><thead><tr><th>Product</th><th>RDC</th><th>Position</th><th>Reorder point</th><th class="c">Status</th><th>Order qty</th></tr></thead><tbody id="dInv"></tbody></table></div>
       </section>
       <section class="panel" aria-labelledby="actH">
         <h2 id="actH">Exceptions</h2>
-        <p class="note">Locations at or below reorder point · proposed transfer or order</p>
         <div class="actions" id="actions"></div>
       </section>
     </div>
 
     <section class="panel" aria-labelledby="dTopH">
       <h2 id="dTopH">Plan vs. forecast</h2>
-      <p class="note" id="dTopNote">—</p>
       <div class="chart" id="pvf"></div>
       <div class="legend"><span><i style="width:11px;height:11px;border-radius:2px;background:var(--navy-bar);display:inline-block"></i>Plan (AOP)</span><span><i style="width:11px;height:11px;border-radius:2px;background:var(--blue);display:inline-block"></i>Forecast</span></div>
     </section>
@@ -211,7 +206,6 @@ footer{color:var(--muted);font-size:12px}
   <div id="pg-sf" class="page" role="tabpanel" aria-labelledby="tab-sf" hidden>
     <section class="panel" aria-labelledby="sfH">
       <h2 id="sfH">Forecast detail</h2>
-      <p class="note">Month × product × RDC · moving average with seasonal adjustment</p>
       <div class="filters"><span class="flabel">Product</span><span id="sfProd" class="fgrp" role="group" aria-label="Filter by product"></span></div>
       <div class="filters"><span class="flabel">RDC</span><span id="sfRdc" class="fgrp" role="group" aria-label="Filter by RDC"></span><span class="count" id="sfCount"></span></div>
       <div class="tbl tall"><table><thead><tr><th>Month</th><th>Product</th><th>Period</th><th>SKU</th><th>RDC</th><th>Actual</th><th>Forecast</th><th>Error</th><th>APE</th></tr></thead><tbody id="sfBody"></tbody></table></div>
@@ -221,12 +215,10 @@ footer{color:var(--muted);font-size:12px}
   <div id="pg-acc" class="page" role="tabpanel" aria-labelledby="tab-acc" hidden>
     <section class="panel" aria-labelledby="accH">
       <h2 id="accH">Accuracy by product</h2>
-      <p class="note" id="accNote">—</p>
       <div class="tbl"><table><thead><tr><th>Product</th><th>Actual</th><th>Forecast</th><th>MAPE</th><th>Accuracy</th><th>Bias</th><th class="c">Status</th></tr></thead><tbody id="accProd"></tbody></table></div>
     </section>
     <section class="panel" aria-labelledby="accH2">
       <h2 id="accH2">Accuracy by RDC</h2>
-      <p class="note">Bias &gt; 0 = over-forecast · Bias &lt; 0 = under-forecast</p>
       <div class="tbl"><table><thead><tr><th>RDC</th><th>Actual</th><th>Forecast</th><th>MAPE</th><th>Accuracy</th><th>Bias</th><th class="c">Status</th></tr></thead><tbody id="accRdc"></tbody></table></div>
     </section>
   </div>
@@ -234,7 +226,6 @@ footer{color:var(--muted);font-size:12px}
   <div id="pg-inv" class="page" role="tabpanel" aria-labelledby="tab-inv" hidden>
     <section class="panel" aria-labelledby="invH">
       <h2 id="invH">Inventory and replenishment</h2>
-      <p class="note">ROP = lead-time demand + safety stock · Proposed qty covers ROP + 1 month</p>
       <div class="filters" id="filters" role="group" aria-label="Filter by RDC"></div>
       <div class="tbl"><table>
         <thead><tr><th>Product</th><th>RDC</th><th>On hand</th><th>On order</th><th>LT (wk)</th><th>Avg demand</th><th>Std dev</th><th>Fcst next month</th><th>LT demand</th><th>Safety stock</th><th>ROP</th><th>Position</th><th>DOS</th><th class="c">Status</th><th>Proposed qty</th></tr></thead>
@@ -263,19 +254,16 @@ footer{color:var(--muted);font-size:12px}
     <div class="grid2">
       <section class="panel" aria-labelledby="tPhH">
         <h2 id="tPhH">AOP monthly phasing</h2>
-        <p class="note" id="tPhNote">—</p>
         <div class="chart" id="phase"></div>
       </section>
       <section class="panel" aria-labelledby="tPhT">
         <h2 id="tPhT">Phasing table</h2>
-        <p class="note">Phasing based on prior-year actuals</p>
         <div class="tbl compact"><table><thead><tr><th>Month</th><th>Prior year</th><th>Phasing</th><th>AOP</th></tr></thead><tbody id="tPhase"></tbody></table></div>
       </section>
     </div>
 
     <section class="panel" aria-labelledby="tPrH">
       <h2 id="tPrH">Plan vs. forecast by product</h2>
-      <p class="note" id="tPrNote">—</p>
       <div class="chart" id="pvf2"></div>
       <div class="legend"><span><i style="width:11px;height:11px;border-radius:2px;background:var(--navy-bar);display:inline-block"></i>Plan (AOP)</span><span><i style="width:11px;height:11px;border-radius:2px;background:var(--blue);display:inline-block"></i>Forecast</span></div>
       <div class="tbl" style="margin-top:14px"><table><thead><tr><th>Product</th><th>Actuals LTM</th><th>Mix</th><th>Plan</th><th>Forecast</th><th>Variance</th><th>Variance %</th><th class="c">Status</th></tr></thead><tbody id="tProd"></tbody></table></div>
@@ -283,7 +271,6 @@ footer{color:var(--muted);font-size:12px}
 
     <section class="panel" aria-labelledby="tRdH">
       <h2 id="tRdH">Plan vs. forecast by RDC</h2>
-      <p class="note">Variance = plan − forecast · positive = plan above forecast</p>
       <div class="tbl"><table><thead><tr><th>Product</th><th>RDC</th><th>RDC mix</th><th>Plan</th><th>Forecast</th><th>Variance</th><th>Variance %</th><th class="c">Status</th></tr></thead><tbody id="tRdc"></tbody></table></div>
     </section>
   </div>
@@ -291,7 +278,6 @@ footer{color:var(--muted);font-size:12px}
   <div id="pg-ful" class="page" role="tabpanel" aria-labelledby="tab-ful" hidden>
     <section class="panel" aria-labelledby="fulH">
       <h2 id="fulH">Order fulfillment</h2>
-      <p class="note">On time and in full · last 12 months</p>
       <div class="chart" id="fill2"></div>
       <div class="legend" style="margin-bottom:14px"><span><i class="sw" style="border-color:var(--blue)"></i>Fulfillment rate</span><span><i class="sw dash" style="border-color:var(--red)"></i>Target</span></div>
       <div class="tbl"><table><thead><tr><th>Month</th><th>Orders</th><th>OTIF</th><th>Fulfillment rate</th><th>Target</th><th class="c">Status</th></tr></thead><tbody id="fulBody"></tbody></table></div>
@@ -301,7 +287,6 @@ footer{color:var(--muted);font-size:12px}
   <div id="pg-set" class="page" role="tabpanel" aria-labelledby="tab-set" hidden>
     <section class="panel" aria-labelledby="dataH">
       <h2 id="dataH">Data import</h2>
-      <p class="note">.xlsx with sheets Sales, Inventory, Orders · processed locally in the browser</p>
       <div class="dsrc">
         <button class="btn btn-primary" id="uploadBtn" type="button">Import Excel</button>
         <input type="file" id="fileIn" accept=".xlsx,.xls" hidden>
@@ -311,7 +296,6 @@ footer{color:var(--muted);font-size:12px}
 
     <section class="panel" aria-labelledby="scnH">
         <h2 id="scnH">Promotion scenario</h2>
-        <p class="note">Uplift applied to next-month forecast · all RDCs</p>
         <div class="controls">
           <div class="ctl scn"><label for="promoProd">Product</label><select id="promoProd"></select></div>
           <div class="ctl scn"><label for="uplift">Uplift</label><div class="range"><input type="range" id="uplift" min="0" max="60" step="5" value="0"><output id="upliftOut" for="uplift">0%</output></div></div>
@@ -532,8 +516,7 @@ function render(){
     <p>${a.donor&&a.move>0?`Proposal: transfer ${nf.format(a.move)} from ${esc(a.donor.rdc)}${a.move<a.sugg?` · order ${nf.format(a.sugg-a.move)} from plant`:''}`:`Proposal: order ${nf.format(a.sugg)} from plant · no transfer stock available`}</p></div>
     <div class="qty">${nf.format(a.sugg)}<small>proposed qty</small></div></div>`).join(''):'<p class="empty">No exceptions.</p>';
   const T=R.top,flag=Math.abs(T.gp)>SET.tol;
-  $('dTopH').textContent=`Plan vs. forecast · ${mLabel(R.nextM)}`;
-  $('dTopNote').innerHTML=`AOP ${nf.format(T.nextPlan)} · Forecast ${nf.format(T.buTotal)} · Variance ${(T.gp>0?'+':'')+pct(T.gp)} ${statusPill(flag,'Review','Aligned')}`;
+  $('dTopH').innerHTML=`Plan vs. forecast · ${mLabel(R.nextM)} <span class="hstat">${(T.gp>0?'+':'')+pct(T.gp)} ${statusPill(flag,'Review','Aligned')}</span>`;
   renderSF(); renderAcc(); renderInv(); renderTop(); renderFul();
   if(PAGE==='dash')drawDash();
   if(PAGE==='top')drawTop();
@@ -545,7 +528,6 @@ function drawDash(){
   lineChart(avf,{labels:R.monthly.map(m=>mLabel(m.m)),series:[{values:R.monthly.map(m=>m.a),color:'var(--blue)',area:true,end:true},{values:R.monthly.map(m=>m.f),color:'var(--red)',dash:true}],
     yMin:0,yMax:mx,fmt:v=>v>=1000?(v/1000).toFixed(v%1000?1:0)+'k':nf.format(v),dots:R.monthly.map((m,i)=>m.promo?i:-1).filter(i=>i>=0),
     tipFmt:i=>{const m=R.monthly[i],e=m.a?(m.f-m.a)/m.a:0;return `${mLabel(m.m)}${m.promo?' · promotion':''}<br>Actual <b>${nf.format(m.a)}</b><br>Forecast <b>${nf.format(m.f)}</b><br>Error <b>${(e>0?'+':'')+pct(e)}</b>`;}});
-  $('avfNote').textContent=`All products · all RDCs · units · ${mLabel(R.monthly[0].m)}–${mLabel(R.monthly[R.monthly.length-1].m)}`;
   drawFill($('fill'));
   drawPvF($('pvf'));
 }
@@ -564,7 +546,6 @@ function renderTop(){
   $('tAnnual').textContent=nf.format(T.annual); $('tAnnualD').textContent=`${ph0}–${ph1} · ${g>=0?'+':''}${g}% vs. LTM`;
   $('tNext').textContent=nf.format(T.nextPlan); $('tNextD').textContent=`AOP · ${mLabel(R.nextM)}`;
   $('tBU').textContent=nf.format(T.buTotal); $('tBUD').textContent=`Statistical forecast · ${mLabel(R.nextM)}`;
-  $('tPhNote').textContent=`Units · ${ph0}–${ph1}`; $('tPrNote').textContent=`${mLabel(R.nextM)} · plan allocated by LTM product mix`;
   $('tGap').textContent=gpS(T.gp); $('tGapD').innerHTML=`${gS(T.gap)} units ${statusPill(Math.abs(T.gp)>tol,'Review','Aligned')}`;
   $('tPhase').innerHTML=T.phase.map(p=>`<tr><td>${mLabel(p.m)}</td>${td(n0(p.ly))}${td(pct(p.share))}${td(n0(p.plan))}</tr>`).join('')+
     `<tr class="tot"><td>Total</td>${td(n0(T.phase.reduce((x,p)=>x+p.ly,0)))}${td(pct(T.phase.reduce((x,p)=>x+p.share,0)))}${td(n0(T.phase.reduce((x,p)=>x+p.plan,0)))}</tr>`;
@@ -592,7 +573,6 @@ function renderAcc(){
   const tot={name:'Total',act:R.byProd.reduce((x,p)=>x+p.act,0),fc:R.byProd.reduce((x,p)=>x+p.fc,0),mape:R.mape,bias:R.bias};
   $('accProd').innerHTML=accRows(R.byProd)+accRows([tot]).replace('<tr>','<tr class="tot">');
   $('accRdc').innerHTML=accRows(R.byRdc);
-  $('accNote').textContent=`Last 12 months · ${mLabel(R.monthly[0].m)}–${mLabel(R.monthly[R.monthly.length-1].m)} · MA(${SET.win})${R.useS?' + seasonal':''} · threshold MAPE 15%`;
 }
 function renderInv(){
   chips($('filters'),['All',...new Set(R.inv.map(r=>r.rdc)),'__reorder'],RDC,'rdc');
