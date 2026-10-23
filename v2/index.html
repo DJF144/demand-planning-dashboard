@@ -292,6 +292,7 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
   <div id="pg-cons" class="page" role="tabpanel" aria-labelledby="tab-cons" hidden>
     <section class="panel" aria-labelledby="mgH">
       <h2 id="mgH">Summary</h2>
+      <div class="filters"><span class="flabel">Period</span><span id="revPer" class="fgrp" role="group" aria-label="Period"></span></div>
       <p class="headline" id="mgHead">—</p>
       <p class="subline" id="mgSub">—</p>
     </section>
@@ -644,7 +645,7 @@ const DEFAULT_RULES=[
  {row:'adj',sku:'HD-36I',months:['2026-10','2026-11','2026-12'],pct:-.10,comment:'Model overshoots after a noisy summer'}];
 const SET={model:'auto',win:3,svc:0.95,target:0.92,tolMape:0.2,tolBias:0.1,tolChange:0.3,tolPlan:0.05,horizon:6};
 let DATA,INPUTS,R,SRC='Sample data',RELEASED=null,PAGE='dash';
-const UI={mgCat:'All',sfCat:'All',sfProd:'All',sfRdc:'All',invRdc:'All',exType:'All',pvProd:'sku:RG-30I',pvRdc:'All',seaCat:null};
+const UI={revH:3,mgCat:'All',sfCat:'All',sfProd:'All',sfRdc:'All',invRdc:'All',exType:'All',pvProd:'sku:RG-30I',pvRdc:'All',seaCat:null};
 const NOTES={risks:null,dec:null};
 
 function fromSample(s){return {
@@ -726,8 +727,8 @@ function seasonChart(box,idx){
 }
 
 /* ---------- helpers on results ---------- */
-const next3=()=>{let c=0,a=0,st=0;for(const cp of R.catPlan)for(const m of cp.months.slice(0,3)){c+=m.cons;st+=m.stat;if(m.aop!=null)a+=m.aop;}return {cons:c,stat:st,aop:a,gap:a?(c-a)/a:NaN};};
-const cat3=()=>R.catPlan.map(cp=>{const ms=cp.months.slice(0,3),c=sum(ms.map(m=>m.cons)),a=sum(ms.map(m=>m.aop||0));return {category:cp.category,stat:sum(ms.map(m=>m.stat)),cons:c,aop:a,gap:a?(c-a)/a:NaN};});
+const next3=(n=3)=>{let c=0,a=0,st=0;for(const cp of R.catPlan)for(const m of cp.months.slice(0,n)){c+=m.cons;st+=m.stat;if(m.aop!=null)a+=m.aop;}return {cons:c,stat:st,aop:a,gap:a?(c-a)/a:NaN};};
+const cat3=(n=3)=>R.catPlan.map(cp=>{const ms=cp.months.slice(0,n),c=sum(ms.map(m=>m.cons)),a=sum(ms.map(m=>m.aop||0));return {category:cp.category,stat:sum(ms.map(m=>m.stat)),cons:c,aop:a,gap:a?(c-a)/a:NaN};});
 function drivers(limit,h0=0,h1=3){const out=[],rows={adj:'Planner adjustment',sales:'Sales input',mkt:'Marketing'};
   for(const row of Object.keys(rows)){const agg=new Map();for(const [k,v] of Object.entries(INPUTS[row]||{})){if(!v)continue;const [sku,,m]=k.split('|');const h=R.fut.indexOf(m);if(h<h0||h>=h1)continue;const kk=sku+'|'+m;agg.set(kk,(agg.get(kk)||0)+v);}
     for(const [kk,v] of agg){const [sku,m]=kk.split('|'),p=R.prodL12.find(x=>x.sku===sku);out.push({row,label:rows[row],sku,product:p?p.product:sku,category:p?p.category:'',m,v,comment:(INPUTS.comment||{})[kk]||''});}}
@@ -874,11 +875,13 @@ function renderInv(){
   $('invBody').innerHTML=rows.map(r=>`<tr class="${r.reorder?'hl':''}"><td>${esc(r.sku)}</td><td>${esc(r.product)}</td><td>${esc(r.rdc)}</td>${td(n0(r.stock))}${td(n0(r.onOrder))}${td(r.lt)}${td(n0(r.avg))}${td(n0(r.sd))}${td(n0(r.fc))}${td(n0(r.ltd))}${td(n0(r.ss))}${td(n0(r.rop))}${td(n0(r.pos))}${td(isFinite(r.dos)?Math.round(r.dos):'—')}<td class="c">${r.reorder?pill('bad','Reorder'):pill('ok','OK')}</td>${td(r.sugg?nf.format(r.sugg):'–')}</tr>`).join('');
 }
 function renderMgmt(){
-  const g=next3(),c3=cat3();
+  const P=UI.revH,g=next3(P),c3=cat3(P),pl=`next ${P} months`;
+  $('mgtH').textContent=`Next ${P} months by category`;$('wfH').textContent=`Change vs. last month's plan · ${pl}`;
+  chips($('revPer'),['3','6'],String(P),'h',v=>`Next ${v} months`);
   if(!R.hasPlan){$('mgHead').textContent='Add a Plan sheet to compare the consensus with the business plan.';$('mgSub').textContent='';}
-  else{const big=c3.slice().sort((a,b)=>Math.abs(b.gap)-Math.abs(a.gap))[0],dr=drivers(1).filter(d=>d.category===big.category)[0]||drivers(10).find(d=>d.category===big.category);
-    $('mgHead').textContent=`Next 3 months: consensus is ${spct(g.gap)} vs. business plan (${nf.format(Math.round(g.cons))} vs. ${nf.format(g.aop)} units).`;
-    const ch=R.hasPrev?changes().tot:null;
+  else{const big=c3.slice().sort((a,b)=>Math.abs(b.gap)-Math.abs(a.gap))[0],dr=drivers(1,0,P).filter(d=>d.category===big.category)[0]||drivers(10,0,P).find(d=>d.category===big.category);
+    $('mgHead').textContent=`Next ${P} months: consensus is ${spct(g.gap)} vs. business plan (${nf.format(Math.round(g.cons))} vs. ${nf.format(g.aop)} units).`;
+    const ch=R.hasPrev?changes(0,P).tot:null;
     $('mgSub').innerHTML=`${ch&&ch.pc?`Change vs. last month's plan: <b>${sgn(Math.round(ch.c-ch.pc))} units (${spct((ch.c-ch.pc)/ch.pc)})</b>. `:''}Largest gap: <b>${esc(big.category)} ${spct(big.gap)}</b>${dr?`, mainly ${esc(dr.label.toLowerCase())} for ${esc(dr.product)} in ${mLabel(dr.m)} (${sgn(Math.round(dr.v))} units)`:''}. ${RELEASED?(RELEASED.changed?'Consensus changed after release.':'Consensus released '+esc(RELEASED.at)+'.'):'Consensus not yet released.'}`;}
   $('mgTable').innerHTML=c3.map(c=>`<tr><td>${esc(c.category)}</td>${td(n0(c.stat))}${td(n0(c.cons))}${td(n0(c.aop||null))}${td(spct(c.gap))}<td class="c">${!isFinite(c.gap)?'—':Math.abs(c.gap)>SET.tolPlan?pill('warn','Review'):pill('ok','Aligned')}</td></tr>`).join('')+
     `<tr class="tot"><td>Total</td>${td(n0(g.stat))}${td(n0(g.cons))}${td(n0(g.aop||null))}${td(spct(g.gap))}<td class="c">${!isFinite(g.gap)?'—':Math.abs(g.gap)>SET.tolPlan?pill('warn','Review'):pill('ok','Aligned')}</td></tr>`;
@@ -905,11 +908,11 @@ function renderReview(){
   $('lbCat').innerHTML=L.byCat.map(c=>row(c.name,c)).join('')+row('Total',T,'tot');
   $('lbMiss').innerHTML=L.misses.slice(0,5).map(m=>`<tr><td class="c">${segTag(m.seg)}</td><td>${esc(m.product)}${m.promo?' <span class="pill warn">Promo</span>':''}</td>${td(n0(m.a))}${td(n0(m.c))}${td(sgn(Math.round(m.err)))}${td(spct(m.pct))}</tr>`).join('');
   if(!R.hasPrev){$('chgBody').innerHTML='<tr><td colspan="5" style="text-align:left">Add a "Previous Plan" sheet to compare with last month\'s plan.</td></tr>';return;}
-  const C=changes();UI._wf=C.tot;
+  const C=changes(0,UI.revH);UI._wf=C.tot;
   $('chgBody').innerHTML=C.prods.slice(0,6).map(p=>`<tr><td style="white-space:normal">${esc(p.product)}</td>${td(n0(p.pc))}${td(n0(p.c))}<td class="num" style="color:${p.d>=0?'var(--ok)':'var(--bad)'}">${sgn(Math.round(p.d))}<br><small>${spct(p.dp)}</small></td><td style="text-align:left;white-space:normal;line-height:1.35"><b>${esc(DRVS[p.key])}</b><br><small style="color:var(--muted)">${esc(p.note)}</small></td></tr>`).join('');
 }
 function drawWf(){const box=$('wfChart');if(!R.hasPrev||!UI._wf){box.innerHTML='<p class="empty">No previous plan in this file.</p>';return;}
-  const t=UI._wf;box.dataset.label='Change from last month\'s plan to this month\'s consensus, next 3 months';
+  const t=UI._wf;box.dataset.label=`Change from last month's plan to this month's consensus, next ${UI.revH} months`;
   wfChart(box,[{label:"Last month's plan",short:'Last plan',v:t.pc,total:true},{label:DRV.st,short:'Stat.',v:t.st},{label:DRV.adj,short:'Planner',v:t.adj},{label:DRV.sal,short:'Sales',v:t.sal},{label:DRV.mkt,short:'Mktg',v:t.mkt},{label:'Consensus',short:'Cons.',v:t.c,total:true}]);}
 function drawMg(){if(!R.hasPlan){$('mgChart').innerHTML='<p class="empty">No Plan sheet in this file.</p>';return;}
   const sel=$('mgCat');sel.innerHTML=`<option value="All">All categories</option>`+R.cats.map(c=>`<option${c===UI.mgCat?' selected':''}>${esc(c)}</option>`).join('');
@@ -920,6 +923,7 @@ function drawMg(){if(!R.hasPlan){$('mgChart').innerHTML='<p class="empty">No Pla
   colChart(box,{labels:R.fut.map(mLabel),series:[{values:st,color:'var(--line)'},{values:cons,color:'var(--blue)'},{values:aop,color:'var(--navy-bar)'}],fmt:kfmt,values:v=>nf.format(Math.round(v)),
     tipFmt:i=>`${mLabel(R.fut[i])}<br>Statistical <b>${nf.format(Math.round(st[i]))}</b><br>Consensus <b>${nf.format(Math.round(cons[i]))}</b><br>Plan <b>${aop[i]==null?'—':nf.format(aop[i])}</b><br>Gap <b>${aop[i]?spct((cons[i]-aop[i])/aop[i]):'—'}</b>`});}
 $('mgCat').addEventListener('change',e=>{UI.mgCat=e.target.value;drawMg();});
+$('revPer').addEventListener('click',e=>{const b=e.target.closest('[data-h]');if(!b)return;UI.revH=+b.dataset.h;renderMgmt();renderReview();drawWf();});
 
 function renderAcc(){
   const T=R.total;
