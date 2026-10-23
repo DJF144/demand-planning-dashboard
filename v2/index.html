@@ -325,7 +325,7 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
       </section>
       <section class="panel" aria-labelledby="chgH">
         <h2 id="chgH">Largest changes by product</h2>
-        <div class="tbl compact"><table><thead><tr><th>Product</th><th>Last month</th><th>This month</th><th>Change</th><th style="text-align:left">Driver</th></tr></thead><tbody id="chgBody"></tbody></table></div>
+        <div class="tbl compact"><table><thead><tr><th>Product</th><th>Previous plan</th><th>Current plan</th><th>Change</th><th style="text-align:left">Driver</th></tr></thead><tbody id="chgBody"></tbody></table></div>
       </section>
     </div>
     <section class="panel" aria-labelledby="pvH">
@@ -882,14 +882,14 @@ function renderInv(){
 }
 function renderMgmt(){
   const P=UI.revH,g=next3(P),c3=cat3(P),st=c=>!isFinite(c.gap)?'—':Math.abs(c.gap)>SET.tolPlan?pill('warn','Review'):pill('ok','Aligned');
-  const nm=P===1?'next month':`next ${P} months`;$('planH').textContent=`Plan · ${nm}`;$('wfH').textContent=`Change vs. last month's plan · ${nm}`;
+  const nm=P===1?'next month':`next ${P} months`;$('planH').textContent=`Plan · ${nm}`;$('wfH').textContent=`Change vs. previous plan · ${nm} (${mLabel(R.fut[0])} – ${mLabel(R.fut[P-1])})`;
   monthOpts($('revPer'),P,'Next');
   const ch=R.hasPrev?changes(0,P).tot:null;
   if(!R.hasPlan){$('mgHead').textContent='Add a Plan sheet to compare the consensus with the business plan.';$('planKpis').innerHTML='';$('mgTable').innerHTML='';return;}
   const rv=c3.filter(c=>Math.abs(c.gap)>SET.tolPlan).sort((a,b)=>Math.abs(b.gap)-Math.abs(a.gap));
   $('mgHead').innerHTML=`Consensus is <b>${spct(g.gap)}</b> ${g.gap>=0?'above':'below'} the business plan. `+(rv.length?`${rv.map(c=>`${esc(c.category)} (${spct(c.gap)})`).join(' and ')} ${rv.length>1?'need':'needs'} review.`:'All categories are within tolerance.');
   $('planKpis').innerHTML=[[nf.format(Math.round(g.cons)),'Consensus · units'],[nf.format(g.aop),'Business plan · units'],[spct(g.gap)+' '+st(g),'Gap vs. plan'],
-    [ch&&ch.pc?`${sgn(Math.round(ch.c-ch.pc))} <small style="font-size:13px;color:var(--muted)">${spct((ch.c-ch.pc)/ch.pc)}</small>`:'—','Change vs. last month']].map(([v,k])=>`<div><b>${v}</b><span>${k}</span></div>`).join('');
+    [ch&&ch.pc?`${sgn(Math.round(ch.c-ch.pc))} <small style="font-size:13px;color:var(--muted)">${spct((ch.c-ch.pc)/ch.pc)}</small>`:'—','Change vs. previous plan']].map(([v,k])=>`<div><b>${v}</b><span>${k}</span></div>`).join('');
   $('mgTable').innerHTML=c3.map(c=>`<tr><td style="white-space:normal">${esc(c.category)}</td>${td(n0(c.cons))}${td(n0(c.aop||null))}${td(spct(c.gap))}<td class="c">${st(c)}</td></tr>`).join('')+
     `<tr class="tot"><td>Total</td>${td(n0(g.cons))}${td(n0(g.aop||null))}${td(spct(g.gap))}<td class="c">${st(g)}</td></tr>`;
   if(NOTES.risks==null){const low=R.byCat.filter(c=>isFinite(c.fva)).sort((a,b)=>a.fva-b.fva)[0],np=R.prodL12.filter(p=>p.months<12);
@@ -923,7 +923,7 @@ function renderReview(){
 }
 function drawWf(){const box=$('wfChart');if(!R.hasPrev||!UI._wf){box.innerHTML='<p class="empty">No previous plan in this file.</p>';return;}
   const t=UI._wf;box.dataset.label=`Change from last month's plan to this month's consensus, next ${UI.revH} months`;
-  wfChart(box,[{label:"Last month's plan",short:'Last plan',v:t.pc,total:true},{label:DRV.st,short:'Stat.',v:t.st},{label:DRV.adj,short:'Planner',v:t.adj},{label:DRV.sal,short:'Sales',v:t.sal},{label:DRV.mkt,short:'Mktg',v:t.mkt},{label:'Consensus',short:'Cons.',v:t.c,total:true}]);}
+  wfChart(box,[{label:"Previous plan",short:'Prev. plan',v:t.pc,total:true},{label:DRV.st,short:'Stat.',v:t.st},{label:DRV.adj,short:'Planner',v:t.adj},{label:DRV.sal,short:'Sales',v:t.sal},{label:DRV.mkt,short:'Mktg',v:t.mkt},{label:'Current plan',short:'Current',v:t.c,total:true}]);}
 function drawMg(){if(!R.hasPlan){$('mgChart').innerHTML='<p class="empty">No Plan sheet in this file.</p>';return;}
   const sel=$('mgCat');let o=`<option value="all">All categories</option>`;
   for(const c of R.cats){o+=`<optgroup label="${esc(c)}"><option value="cat:${esc(c)}">All · ${esc(c)}</option>`;
