@@ -297,7 +297,7 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
   <!-- 05-08 Demand Review -->
   <div id="pg-cons" class="page" role="tabpanel" aria-labelledby="tab-cons" hidden>
     <section class="panel" aria-labelledby="lbH">
-      <div class="phead" style="margin-bottom:12px"><h2 id="lbH">Last month review</h2><span id="revBack" class="fgrp" role="group" aria-label="Review period"></span></div>
+      <div class="phead" style="margin-bottom:12px"><h2 id="lbH">Last month review</h2><select class="sel" id="revBack" aria-label="Review period"></select></div>
       <div class="stats" id="lbKpis"></div>
       <div class="grid2b" style="margin:0">
         <div class="tbl compact"><table><thead><tr><th>Category</th><th>Actual</th><th>Consensus</th><th>Error</th><th>Bias</th><th>FVA</th></tr></thead><tbody id="lbCat"></tbody></table></div>
@@ -305,7 +305,7 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
       </div>
     </section>
     <section class="panel" aria-labelledby="planH">
-      <div class="phead"><h2 id="planH">Plan · next 3 months</h2><span id="revPer" class="fgrp" role="group" aria-label="Horizon"></span></div>
+      <div class="phead"><h2 id="planH">Plan · next 3 months</h2><select class="sel" id="revPer" aria-label="Plan horizon"></select></div>
       <p class="lead" id="mgHead">—</p>
       <div class="stats" id="planKpis"></div>
       <div class="grid2w">
@@ -604,7 +604,7 @@ function compute(data,set,inputs){
       misses:[...new Set(lm.map(r=>r.sku))].map(sk=>{const l=lm.filter(r=>r.sku===sk),a=sum(l.map(r=>r.a)),c=sum(l.map(r=>r.c!=null?r.c:r.f));
         const dir=ms.map(m=>{const x=l.filter(r=>r.m===m);if(!x.length)return '';const e=sum(x.map(r=>(r.c!=null?r.c:r.f)-r.a));return e>0?'+':e<0?'−':'0';});
         return {sku:sk,product:l[0].product,category:l[0].category,seg:seg.get(sk)||'',a,c,err:c-a,pct:a?(c-a)/a:null,promo:l.some(r=>r.promo),dir};}).sort((x,y)=>Math.abs(y.err)-Math.abs(x.err))};};
-  const reviews={1:review(1),2:review(2),3:review(3)},lastReview=reviews[1];
+  const reviews={};for(let k=1;k<=6;k++)reviews[k]=review(k);const lastReview=reviews[1];
   // data check
   const issues=[];for(const s of series){if(s.launch>0)issues.push({sku:s.sku,rdc:s.rdc,text:`No sales before ${months[s.launch]} (new product)`,level:'info'});
     const z0=s.u.slice(Math.max(s.launch,0)).filter(x=>x===0).length;if(z0>0)issues.push({sku:s.sku,rdc:s.rdc,text:`${z0} month(s) with zero sales`,level:'warn'});}
@@ -739,6 +739,7 @@ function drivers(limit,h0=0,h1=3){const out=[],rows={adj:'Planner adjustment',sa
     for(const [kk,v] of agg){const [sku,m]=kk.split('|'),p=R.prodL12.find(x=>x.sku===sku);out.push({row,label:rows[row],sku,product:p?p.product:sku,category:p?p.category:'',m,v,comment:(INPUTS.comment||{})[kk]||''});}}
   return out.sort((a,b)=>Math.abs(b.v)-Math.abs(a.v)).slice(0,limit);}
 
+const monthOpts=(el,cur,w)=>{el.innerHTML=[1,2,3,4,5,6].map(k=>`<option value="${k}"${k===cur?' selected':''}>${w} ${k===1?'month':k+' months'}</option>`).join('');};
 const DRV={st:'Statistical forecast',adj:'Planner adjustment',sal:'Sales input',mkt:'Marketing'},DRVS={st:'Statistical',adj:'Planner',sal:'Sales',mkt:'Marketing'};
 function changes(h0=0,h1=3){const tot={pc:0,c:0,st:0,adj:0,sal:0,mkt:0},byP=new Map();
   for(const s of R.series)for(const q of s.plan.slice(h0,h1)){if(q.pCons==null)continue;
@@ -881,8 +882,8 @@ function renderInv(){
 }
 function renderMgmt(){
   const P=UI.revH,g=next3(P),c3=cat3(P),st=c=>!isFinite(c.gap)?'—':Math.abs(c.gap)>SET.tolPlan?pill('warn','Review'):pill('ok','Aligned');
-  $('planH').textContent=`Plan · next ${P} months`;$('wfH').textContent=`Change vs. last month's plan · next ${P} months`;
-  chips($('revPer'),['3','6'],String(P),'h',v=>`Next ${v} months`);
+  const nm=P===1?'next month':`next ${P} months`;$('planH').textContent=`Plan · ${nm}`;$('wfH').textContent=`Change vs. last month's plan · ${nm}`;
+  monthOpts($('revPer'),P,'Next');
   const ch=R.hasPrev?changes(0,P).tot:null;
   if(!R.hasPlan){$('mgHead').textContent='Add a Plan sheet to compare the consensus with the business plan.';$('planKpis').innerHTML='';$('mgTable').innerHTML='';return;}
   const rv=c3.filter(c=>Math.abs(c.gap)>SET.tolPlan).sort((a,b)=>Math.abs(b.gap)-Math.abs(a.gap));
@@ -908,7 +909,7 @@ $('mgDec').addEventListener('input',e=>NOTES.dec=e.target.value);
 function renderReview(){
   const K=UI.revK,L=R.reviews[K],T=L.total,hasC=T.consW!=null;
   $('lbH').textContent=K===1?'Last month review · '+mLabel(L.to):`Last ${K} months review · ${mLabel(L.from)} – ${mLabel(L.to)}`;
-  chips($('revBack'),['1','2','3'],String(K),'k',v=>v==='1'?'Last month':`Last ${v} months`);
+  monthOpts($('revBack'),K,'Last');
   $('lbMissH').textContent=K===1?'Largest misses':'Largest misses';$('lbDirH').hidden=K===1;
   $('lbKpis').innerHTML=(hasC?[[pct(1-T.consW),'Consensus accuracy'],[spct(T.consBias),'Consensus bias'],[pts(T.fva),'Forecast value added'],[pct(1-T.statW),'Statistical accuracy']]
     :[[pct(1-T.statW),'Statistical accuracy'],['—','Consensus accuracy · needs consensus history']]).map(([v,k])=>`<div><b>${v}</b><span>${k}</span></div>`).join('');
@@ -940,8 +941,8 @@ function drawMg(){if(!R.hasPlan){$('mgChart').innerHTML='<p class="empty">No Pla
   colChart(box,{labels:FU.map(mLabel),series,fmt:kfmt,values:x=>nf.format(Math.round(x)),
     tipFmt:i=>`${mLabel(FU[i])}<br>Statistical <b>${nf.format(Math.round(st[i]))}</b><br>Consensus <b>${nf.format(Math.round(cons[i]))}</b>${aop?`<br>Plan <b>${aop[i]==null?'—':nf.format(aop[i])}</b><br>Gap <b>${aop[i]?spct((cons[i]-aop[i])/aop[i]):'—'}</b>`:''}`});}
 $('mgCat').addEventListener('change',e=>{UI.mgCat=e.target.value;drawMg();});
-$('revBack').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b)return;UI.revK=+b.dataset.k;renderReview();drawWf();});
-$('revPer').addEventListener('click',e=>{const b=e.target.closest('[data-h]');if(!b)return;UI.revH=+b.dataset.h;renderMgmt();renderReview();drawWf();drawMg();});
+$('revBack').addEventListener('change',e=>{UI.revK=+e.target.value;renderReview();drawWf();});
+$('revPer').addEventListener('change',e=>{UI.revH=+e.target.value;renderMgmt();renderReview();drawWf();drawMg();});
 
 function renderAcc(){
   const T=R.total;
