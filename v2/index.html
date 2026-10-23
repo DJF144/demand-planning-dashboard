@@ -290,19 +290,20 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
 
   <!-- 05-08 Demand Review -->
   <div id="pg-cons" class="page" role="tabpanel" aria-labelledby="tab-cons" hidden>
-    <section class="panel" aria-labelledby="mgH">
-      <h2 id="mgH">Summary</h2>
-      <div class="filters"><span class="flabel">Period</span><span id="revPer" class="fgrp" role="group" aria-label="Period"></span></div>
-      <p class="headline" id="mgHead">—</p>
-      <p class="subline" id="mgSub">—</p>
-    </section>
     <section class="panel" aria-labelledby="lbH">
       <h2 id="lbH">Last month review</h2>
+      <div class="filters"><span class="flabel">Period</span><span id="revBack" class="fgrp" role="group" aria-label="Review period"></span></div>
       <div class="stats" id="lbKpis"></div>
       <div class="grid2b" style="margin:0">
         <div class="tbl compact"><table><thead><tr><th>Category</th><th>Actual</th><th>Consensus</th><th>Error</th><th>Bias</th><th>FVA</th></tr></thead><tbody id="lbCat"></tbody></table></div>
-        <div class="tbl compact"><table><thead><tr><th class="c">Segment</th><th>Largest misses</th><th>Actual</th><th>Consensus</th><th>Error (units)</th><th>Error %</th></tr></thead><tbody id="lbMiss"></tbody></table></div>
+        <div class="tbl compact"><table><thead><tr><th class="c">Seg.</th><th id="lbMissH">Largest misses</th><th>Actual</th><th>Consensus</th><th>Error</th><th>Error %</th><th class="c" id="lbDirH" hidden>By month</th></tr></thead><tbody id="lbMiss"></tbody></table></div>
       </div>
+    </section>
+    <section class="panel" aria-labelledby="mgH">
+      <h2 id="mgH">Plan summary</h2>
+      <div class="filters"><span class="flabel">Horizon</span><span id="revPer" class="fgrp" role="group" aria-label="Period"></span></div>
+      <p class="headline" id="mgHead">—</p>
+      <p class="subline" id="mgSub">—</p>
     </section>
     <section class="panel" aria-labelledby="mgtH">
       <h2 id="mgtH">Next 3 months by category</h2>
@@ -591,21 +592,23 @@ function compute(data,set,inputs){
     }}
   for(const r of inv.filter(r=>r.reorder))ex.push({sku:r.sku,product:r.product,category:r.category,rdc:r.rdc,seg:r.seg,type:'Reorder',value:Math.round(r.dos)+' days of supply',sev:1.5,note:'Position at or below reorder point'});
   const abcRank={A:0,B:1,C:2};ex.sort((a,b)=>(abcRank[a.seg[0]]??3)-(abcRank[b.seg[0]]??3)||b.sev-a.sev);
-  // last month review: actual vs statistical forecast and consensus
-  const lastM=months[last],lm=[];
-  for(const s of series){const a=s.u[last];if(a==null||s.f[last]==null)continue;const c=chist.get(s.sku+'|'+s.rdc+'|'+lastM);
-    lm.push({sku:s.sku,product:s.product,category:s.category,rdc:s.rdc,a,f:s.f[last],c:c==null?null:c,promo:s.promo[last]});}
-  const lmAcc=l=>{const st=metrics(l.map(r=>({a:r.a,f:r.f}))),wc=l.filter(r=>r.c!=null),cs=wc.length?metrics(wc.map(r=>({a:r.a,f:r.c}))):null;
-    return {a:sum(l.map(r=>r.a)),f:sum(l.map(r=>r.f)),c:wc.length?sum(wc.map(r=>r.c)):null,statW:st.wmape,consW:cs?cs.wmape:null,consBias:cs?cs.bias:null,fva:cs?st.wmape-cs.wmape:null};};
-  const lastReview={m:lastM,total:lmAcc(lm),byCat:cats.map(c=>({name:c,...lmAcc(lm.filter(r=>r.category===c))})),
-    misses:[...new Set(lm.map(r=>r.sku))].map(k=>{const l=lm.filter(r=>r.sku===k),a=sum(l.map(r=>r.a)),c=l.every(r=>r.c!=null)?sum(l.map(r=>r.c)):sum(l.map(r=>r.f));
-      return {sku:k,product:l[0].product,category:l[0].category,seg:seg.get(k)||'',a,c,err:c-a,pct:a?(c-a)/a:null,promo:l.some(r=>r.promo)};}).sort((x,y)=>Math.abs(y.err)-Math.abs(x.err))};
+  // look-back review over the last k months: actual vs statistical forecast and consensus
+  const review=k=>{const ms=months.slice(Math.max(0,n-k)),lm=[];
+    for(const s of series)for(let t=Math.max(0,n-k);t<n;t++){const a=s.u[t];if(a==null||s.f[t]==null)continue;const c=chist.get(s.sku+'|'+s.rdc+'|'+months[t]);
+      lm.push({sku:s.sku,product:s.product,category:s.category,rdc:s.rdc,m:months[t],a,f:s.f[t],c:c==null?null:c,promo:s.promo[t]});}
+    const lmAcc=l=>{const st=metrics(l.map(r=>({a:r.a,f:r.f}))),wc=l.filter(r=>r.c!=null),cs=wc.length?metrics(wc.map(r=>({a:r.a,f:r.c}))):null;
+      return {a:sum(l.map(r=>r.a)),f:sum(l.map(r=>r.f)),c:wc.length?sum(wc.map(r=>r.c)):null,statW:st.wmape,consW:cs?cs.wmape:null,consBias:cs?cs.bias:null,fva:cs?st.wmape-cs.wmape:null};};
+    return {k,from:ms[0],to:ms[ms.length-1],total:lmAcc(lm),byCat:cats.map(c=>({name:c,...lmAcc(lm.filter(r=>r.category===c))})),
+      misses:[...new Set(lm.map(r=>r.sku))].map(sk=>{const l=lm.filter(r=>r.sku===sk),a=sum(l.map(r=>r.a)),c=sum(l.map(r=>r.c!=null?r.c:r.f));
+        const dir=ms.map(m=>{const x=l.filter(r=>r.m===m);if(!x.length)return '';const e=sum(x.map(r=>(r.c!=null?r.c:r.f)-r.a));return e>0?'+':e<0?'−':'0';});
+        return {sku:sk,product:l[0].product,category:l[0].category,seg:seg.get(sk)||'',a,c,err:c-a,pct:a?(c-a)/a:null,promo:l.some(r=>r.promo),dir};}).sort((x,y)=>Math.abs(y.err)-Math.abs(x.err))};};
+  const reviews={1:review(1),2:review(2),3:review(3)},lastReview=reviews[1];
   // data check
   const issues=[];for(const s of series){if(s.launch>0)issues.push({sku:s.sku,rdc:s.rdc,text:`No sales before ${months[s.launch]} (new product)`,level:'info'});
     const z0=s.u.slice(Math.max(s.launch,0)).filter(x=>x===0).length;if(z0>0)issues.push({sku:s.sku,rdc:s.rdc,text:`${z0} month(s) with zero sales`,level:'warn'});}
   const invMissing=series.filter(s=>!inv.find(r=>r.sku===s.sku&&r.rdc===s.rdc)).length;
   if(invMissing)issues.push({sku:'',rdc:'',text:`${invMissing} SKU-location(s) without inventory data`,level:'warn'});
-  return {months,n,last,fut,evalFrom,series,rows,evalRows,total,byCat,byProd,byRdc,modelCmp,monthly,prodL12,seg,cats,idx,catPlan,inv,actions,ord,fillRate,ex,issues,hasCH,hasPrev,lastReview,hasPlan:planMap.size>0,z,
+  return {months,n,last,fut,evalFrom,series,rows,evalRows,total,byCat,byProd,byRdc,modelCmp,monthly,prodL12,seg,cats,idx,catPlan,inv,actions,ord,fillRate,ex,issues,hasCH,hasPrev,lastReview,reviews,hasPlan:planMap.size>0,z,
     counts:{rows:data.sales.length,skus:prodMeta.size,rdcs:new Set(series.map(s=>s.rdc)).size,series:series.length,from:months[0],to:months[last]}};
 }
 // turn % rules into unit inputs, split by RDC in proportion to the statistical forecast
@@ -645,7 +648,7 @@ const DEFAULT_RULES=[
  {row:'adj',sku:'HD-36I',months:['2026-10','2026-11','2026-12'],pct:-.10,comment:'Model overshoots after a noisy summer'}];
 const SET={model:'auto',win:3,svc:0.95,target:0.92,tolMape:0.2,tolBias:0.1,tolChange:0.3,tolPlan:0.05,horizon:6};
 let DATA,INPUTS,R,SRC='Sample data',RELEASED=null,PAGE='dash';
-const UI={revH:3,mgCat:'All',sfCat:'All',sfProd:'All',sfRdc:'All',invRdc:'All',exType:'All',pvProd:'sku:RG-30I',pvRdc:'All',seaCat:null};
+const UI={revK:1,revH:3,mgCat:'All',sfCat:'All',sfProd:'All',sfRdc:'All',invRdc:'All',exType:'All',pvProd:'sku:RG-30I',pvRdc:'All',seaCat:null};
 const NOTES={risks:null,dec:null};
 
 function fromSample(s){return {
@@ -900,13 +903,16 @@ function renderMgmt(){
 $('mgRisks').addEventListener('input',e=>NOTES.risks=e.target.value);
 $('mgDec').addEventListener('input',e=>NOTES.dec=e.target.value);
 function renderReview(){
-  const L=R.lastReview,T=L.total,hasC=T.consW!=null;$('lbH').textContent='Last month review · '+mLabel(L.m);
+  const K=UI.revK,L=R.reviews[K],T=L.total,hasC=T.consW!=null;
+  $('lbH').textContent=K===1?'Last month review · '+mLabel(L.to):`Last ${K} months review · ${mLabel(L.from)} – ${mLabel(L.to)}`;
+  chips($('revBack'),['1','2','3'],String(K),'k',v=>v==='1'?'Last month':`Last ${v} months`);
+  $('lbMissH').textContent=K===1?'Largest misses':'Largest misses';$('lbDirH').hidden=K===1;
   $('lbKpis').innerHTML=(hasC?[[pct(1-T.consW),'Consensus accuracy'],[spct(T.consBias),'Consensus bias'],[pts(T.fva),'Forecast value added'],[pct(1-T.statW),'Statistical accuracy']]
     :[[pct(1-T.statW),'Statistical accuracy'],['—','Consensus accuracy · needs consensus history']]).map(([v,k])=>`<div><b>${v}</b><span>${k}</span></div>`).join('');
   const fv=x=>x==null?td('—'):`<td class="num" style="color:${x>=0?'var(--ok)':'var(--bad)'}">${pts(x)}</td>`;
   const row=(n,c,cls='')=>`<tr class="${cls}"><td>${esc(n)}</td>${td(n0(c.a))}${td(c.c==null?n0(c.f):n0(c.c))}${td(pct(c.consW??c.statW))}${td(c.consBias==null?'—':spct(c.consBias))}${fv(c.fva)}</tr>`;
   $('lbCat').innerHTML=L.byCat.map(c=>row(c.name,c)).join('')+row('Total',T,'tot');
-  $('lbMiss').innerHTML=L.misses.slice(0,5).map(m=>`<tr><td class="c">${segTag(m.seg)}</td><td>${esc(m.product)}${m.promo?' <span class="pill warn">Promo</span>':''}</td>${td(n0(m.a))}${td(n0(m.c))}${td(sgn(Math.round(m.err)))}${td(spct(m.pct))}</tr>`).join('');
+  $('lbMiss').innerHTML=L.misses.slice(0,5).map(m=>`<tr><td class="c">${segTag(m.seg)}</td><td style="white-space:normal">${esc(m.product)}${m.promo?' <span class="pill warn">Promo</span>':''}</td>${td(n0(m.a))}${td(n0(m.c))}${td(sgn(Math.round(m.err)))}${td(spct(m.pct))}${K>1?`<td class="c" title="Over (+) or under (−) forecast per month" style="font-family:var(--f-mono);letter-spacing:.1em">${m.dir.join('')}</td>`:''}</tr>`).join('');
   if(!R.hasPrev){$('chgBody').innerHTML='<tr><td colspan="5" style="text-align:left">Add a "Previous Plan" sheet to compare with last month\'s plan.</td></tr>';return;}
   const C=changes(0,UI.revH);UI._wf=C.tot;
   $('chgBody').innerHTML=C.prods.slice(0,6).map(p=>`<tr><td style="white-space:normal">${esc(p.product)}</td>${td(n0(p.pc))}${td(n0(p.c))}<td class="num" style="color:${p.d>=0?'var(--ok)':'var(--bad)'}">${sgn(Math.round(p.d))}<br><small>${spct(p.dp)}</small></td><td style="text-align:left;white-space:normal;line-height:1.35"><b>${esc(DRVS[p.key])}</b><br><small style="color:var(--muted)">${esc(p.note)}</small></td></tr>`).join('');
@@ -923,6 +929,7 @@ function drawMg(){if(!R.hasPlan){$('mgChart').innerHTML='<p class="empty">No Pla
   colChart(box,{labels:R.fut.map(mLabel),series:[{values:st,color:'var(--line)'},{values:cons,color:'var(--blue)'},{values:aop,color:'var(--navy-bar)'}],fmt:kfmt,values:v=>nf.format(Math.round(v)),
     tipFmt:i=>`${mLabel(R.fut[i])}<br>Statistical <b>${nf.format(Math.round(st[i]))}</b><br>Consensus <b>${nf.format(Math.round(cons[i]))}</b><br>Plan <b>${aop[i]==null?'—':nf.format(aop[i])}</b><br>Gap <b>${aop[i]?spct((cons[i]-aop[i])/aop[i]):'—'}</b>`});}
 $('mgCat').addEventListener('change',e=>{UI.mgCat=e.target.value;drawMg();});
+$('revBack').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b)return;UI.revK=+b.dataset.k;renderReview();drawWf();});
 $('revPer').addEventListener('click',e=>{const b=e.target.closest('[data-h]');if(!b)return;UI.revH=+b.dataset.h;renderMgmt();renderReview();drawWf();});
 
 function renderAcc(){
