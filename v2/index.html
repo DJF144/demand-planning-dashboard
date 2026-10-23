@@ -336,11 +336,6 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
       </div>
       <div class="tbl pv"><table><thead id="pvHead"></thead><tbody id="pvBody"></tbody></table></div>
     </section>
-    <section class="panel" aria-labelledby="pvcH">
-      <h2 id="pvcH">Statistical forecast, consensus and plan</h2>
-      <div class="chart" id="pvChart"></div>
-      <div class="legend" id="pvLegend"></div>
-    </section>
     <div class="grid2b">
       <section class="panel" aria-labelledby="riskH">
         <h2 id="riskH"><label for="mgRisks">Risks and opportunities</label></h2>
@@ -757,7 +752,7 @@ function render(){
 }
 function draw(){
   if(PAGE==='dash'){drawAvf();drawFill();}
-  if(PAGE==='cons'){drawMg();drawWf();drawPv();}
+  if(PAGE==='cons'){drawMg();drawWf();}
   if(PAGE==='set'&&UI.seaCat)seasonChart($('seaChart'),R.idx[UI.seaCat]);
 }
 function renderDash(){
@@ -854,12 +849,8 @@ function renderCons(){
   $('pvBody').innerHTML=b;
   const st0=RELEASED?(RELEASED.changed?pill('warn','Changed after release'):pill('ok','Released '+RELEASED.at)):pill('warn','Draft');
   $('pvStatus').innerHTML=st0+(isSku?' <span>Type a value and press Enter</span>':' <span>Select a product to edit</span>');
-  $('pvLegend').innerHTML=`<span><i style="width:11px;height:11px;border-radius:2px;background:var(--line);display:inline-block"></i>Statistical forecast</span><span><i style="width:11px;height:11px;border-radius:2px;background:var(--blue);display:inline-block"></i>Consensus</span>${aop?'<span><i style="width:10px;height:10px;transform:rotate(45deg);background:var(--navy-bar);display:inline-block"></i>Business plan (AOP)</span>':''}`;
   UI._pv={st,cons,aop};
 }
-function drawPv(){const p=UI._pv;if(!p)return;const box=$('pvChart');box.dataset.label='Statistical forecast, consensus and business plan';
-  colChart(box,{labels:R.fut.map(mLabel),series:[{values:p.st,color:'var(--line)'},{values:p.cons,color:'var(--blue)'}],line:p.aop?{values:p.aop,color:'var(--navy-bar)'}:null,fmt:kfmt,
-    tipFmt:i=>`${mLabel(R.fut[i])}<br>Statistical <b>${nf.format(Math.round(p.st[i]))}</b><br>Consensus <b>${nf.format(Math.round(p.cons[i]))}</b>${p.aop&&p.aop[i]!=null?`<br>Plan <b>${nf.format(p.aop[i])}</b>`:''}`});}
 function setInput(row,h,val){
   const sku=UI.pvProd.slice(4),m=R.fut[h];let ss=R.series.filter(s=>s.sku===sku);if(UI.pvRdc!=='All')ss=ss.filter(s=>s.rdc===UI.pvRdc);
   const base=ss.map(s=>s.plan[h].stat),bt=sum(base);let left=Math.round(val);
@@ -869,9 +860,9 @@ function setInput(row,h,val){
 $('pvBody').addEventListener('change',e=>{const t=e.target;
   if(t.dataset.row){const v=parseFloat(t.value);setInput(t.dataset.row,+t.dataset.h,isFinite(v)?v:0);const id=t.id;render();const n=$(id);if(n)n.focus();}
   else if(t.dataset.cmt!=null){const m=R.fut[+t.dataset.cmt];INPUTS.comment[UI.pvProd.slice(4)+'|'+m]=t.value.trim();if(RELEASED)RELEASED.changed=true;render();}});
-$('pvProd').addEventListener('change',e=>{UI.pvProd=e.target.value;renderCons();drawPv();});
+$('pvProd').addEventListener('change',e=>{UI.pvProd=e.target.value;renderCons();});
 const hh=location.hash.slice(1);if(hh==='mgmt')history.replaceState(null,'','#cons');
-$('pvRdc').addEventListener('change',e=>{UI.pvRdc=e.target.value;renderCons();drawPv();});
+$('pvRdc').addEventListener('change',e=>{UI.pvRdc=e.target.value;renderCons();});
 $('pvRelease').addEventListener('click',()=>{const d=new Date();RELEASED={at:d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}),changed:false};render();});
 $('pvReset').addEventListener('click',()=>{INPUTS=DPE.buildInputs(DATA,SET,DEFAULT_RULES);RELEASED=null;NOTES.risks=NOTES.dec=null;render();});
 
