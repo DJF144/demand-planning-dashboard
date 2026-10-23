@@ -882,13 +882,13 @@ function renderInv(){
 }
 function renderMgmt(){
   const P=UI.revH,g=next3(P),c3=cat3(P),st=c=>!isFinite(c.gap)?'—':Math.abs(c.gap)>SET.tolPlan?pill('warn','Review'):pill('ok','Aligned');
-  const nm=P===1?'next month':`next ${P} months`;$('planH').textContent=`Plan · ${nm}`;$('wfH').textContent=`Change vs. previous plan · ${nm} (${mLabel(R.fut[0])} – ${mLabel(R.fut[P-1])})`;
+  const nm=P===1?'next month':`next ${P} months`;$('planH').textContent=`Plan · ${nm}`;const rg=P===1?mLabel(R.fut[0]):`${mLabel(R.fut[0])} – ${mLabel(R.fut[P-1])}`;$('wfH').textContent=`Change vs. previous plan · ${nm} (${rg})`;$('chgH').textContent=`Largest changes by product · ${nm}`;
   monthOpts($('revPer'),P,'Next');
   const ch=R.hasPrev?changes(0,P).tot:null;
   if(!R.hasPlan){$('mgHead').textContent='Add a Plan sheet to compare the consensus with the business plan.';$('planKpis').innerHTML='';$('mgTable').innerHTML='';return;}
   const rv=c3.filter(c=>Math.abs(c.gap)>SET.tolPlan).sort((a,b)=>Math.abs(b.gap)-Math.abs(a.gap));
   $('mgHead').innerHTML=`Consensus is <b>${spct(g.gap)}</b> ${g.gap>=0?'above':'below'} the business plan. `+(rv.length?`${rv.map(c=>`${esc(c.category)} (${spct(c.gap)})`).join(' and ')} ${rv.length>1?'need':'needs'} review.`:'All categories are within tolerance.');
-  $('planKpis').innerHTML=[[nf.format(Math.round(g.cons)),'Consensus · units'],[nf.format(g.aop),'Business plan · units'],[spct(g.gap)+' '+st(g),'Gap vs. plan'],
+  $('planKpis').innerHTML=[[nf.format(Math.round(g.cons)),`Consensus · ${nm}`],[nf.format(g.aop),`Business plan · ${nm}`],[spct(g.gap)+' '+st(g),'Gap vs. plan'],
     [ch&&ch.pc?`${sgn(Math.round(ch.c-ch.pc))} <small style="font-size:13px;color:var(--muted)">${spct((ch.c-ch.pc)/ch.pc)}</small>`:'—','Change vs. previous plan']].map(([v,k])=>`<div><b>${v}</b><span>${k}</span></div>`).join('');
   $('mgTable').innerHTML=c3.map(c=>`<tr><td style="white-space:normal">${esc(c.category)}</td>${td(n0(c.cons))}${td(n0(c.aop||null))}${td(spct(c.gap))}<td class="c">${st(c)}</td></tr>`).join('')+
     `<tr class="tot"><td>Total</td>${td(n0(g.cons))}${td(n0(g.aop||null))}${td(spct(g.gap))}<td class="c">${st(g)}</td></tr>`;
