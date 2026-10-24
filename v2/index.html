@@ -68,6 +68,22 @@ main .wrap{padding-block:20px 48px;display:grid;gap:20px}
 .phead h2{margin:0}
 .lead{font:600 16px/1.45 var(--f-display);margin:0 0 14px;max-width:80ch}
 .phead .fgrp{flex:0 0 auto}
+.gl-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:4px 0 10px;font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.gaplist{display:flex;flex-direction:column;gap:8px}
+.gl{display:block;width:100%;text-align:left;background:var(--soft);border:1px solid transparent;border-radius:8px;padding:10px 12px;cursor:pointer;color:var(--ink);font:inherit}
+.gl:hover{border-color:var(--line)}
+.gl[aria-pressed="true"]{border-color:var(--blue);background:var(--panel);box-shadow:0 0 0 1px var(--blue) inset}
+.gl.tot{background:transparent;border:1px dashed var(--line)}
+.gl-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.gl-top b{font:600 14px var(--f-body)}
+.gl-nums{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:4px;font:500 12px var(--f-mono);color:var(--muted)}
+.gl-nums em{font-style:normal;color:var(--ink)}
+.gl-bar{position:relative;height:16px;margin-top:8px}
+.gl-bar .ax{position:absolute;left:0;right:0;top:7px;height:2px;background:var(--line)}
+.gl-bar .tol{position:absolute;top:2px;bottom:2px;background:var(--ok-bg);border-radius:3px}
+.gl-bar .zero{position:absolute;top:0;bottom:0;width:1.5px;background:var(--muted)}
+.gl-bar .v{position:absolute;top:4px;height:8px;border-radius:2px}
+.gl-bar .lab{position:absolute;top:-1px;font:600 11.5px var(--f-mono);white-space:nowrap}
 .stats b .pill{margin-left:8px;vertical-align:3px;font:600 11.5px var(--f-body);text-transform:none;letter-spacing:0}
 .chart{position:relative;width:100%}
 .chart svg{display:block;width:100%;height:auto;overflow:visible}
@@ -314,7 +330,10 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
           <div class="chart" id="mgChart"></div>
           <div class="legend"><span><i style="width:11px;height:11px;border-radius:2px;background:var(--line);display:inline-block"></i>Statistical forecast</span><span><i style="width:11px;height:11px;border-radius:2px;background:var(--blue);display:inline-block"></i>Consensus</span><span id="mgAopLeg"><i style="width:11px;height:11px;border-radius:2px;background:var(--navy-bar);display:inline-block"></i>Business plan (AOP)</span><span id="mgNote" hidden>The business plan is set by category</span></div>
         </div>
-        <div class="tbl compact"><table><thead><tr><th>Category</th><th>Consensus</th><th>Plan</th><th>Gap</th><th class="c">Status</th></tr></thead><tbody id="mgTable"></tbody></table></div>
+        <div>
+          <div class="gl-h"><span>Gap vs. plan by category</span><span id="gapTol"></span></div>
+          <div class="gaplist" id="mgTable" role="list"></div>
+        </div>
       </div>
     </section>
     <div class="grid2b">
@@ -890,8 +909,17 @@ function renderMgmt(){
   $('mgHead').innerHTML=`Consensus is <b>${spct(g.gap)}</b> ${g.gap>=0?'above':'below'} the business plan. `+(rv.length?`${rv.map(c=>`${esc(c.category)} (${spct(c.gap)})`).join(' and ')} ${rv.length>1?'need':'needs'} review.`:'All categories are within tolerance.');
   $('planKpis').innerHTML=[[nf.format(Math.round(g.cons)),`Consensus · ${nm}`],[nf.format(g.aop),`Business plan · ${nm}`],[spct(g.gap)+' '+st(g),'Gap vs. plan'],
     [ch&&ch.pc?`${sgn(Math.round(ch.c-ch.pc))} <small style="font-size:13px;color:var(--muted)">${spct((ch.c-ch.pc)/ch.pc)}</small>`:'—','Change vs. previous plan']].map(([v,k])=>`<div><b>${v}</b><span>${k}</span></div>`).join('');
-  $('mgTable').innerHTML=c3.map(c=>`<tr><td style="white-space:normal">${esc(c.category)}</td>${td(n0(c.cons))}${td(n0(c.aop||null))}${td(spct(c.gap))}<td class="c">${st(c)}</td></tr>`).join('')+
-    `<tr class="tot"><td>Total</td>${td(n0(g.cons))}${td(n0(g.aop||null))}${td(spct(g.gap))}<td class="c">${st(g)}</td></tr>`;
+  const cp=R.hasPrev?changes(0,P).prods:[],catCh=c=>{const l=cp.filter(p=>c==='Total'||p.category===c);return l.length?sum(l.map(p=>p.d)):null;};
+  const scale=Math.max(SET.tolPlan*2,...c3.map(c=>Math.abs(c.gap)||0),Math.abs(g.gap)||0)*1.25,pos=x=>50+x/scale*50;
+  $('gapTol').textContent=`Tolerance ±${pct(SET.tolPlan,0)}`;
+  const card=(name,c,key,tot)=>{const out=isFinite(c.gap)&&Math.abs(c.gap)>SET.tolPlan,col=out?'var(--warn)':'var(--blue)',x0=pos(0),x1=pos(c.gap||0),d=catCh(name);
+    return `<button type="button" role="listitem" class="gl${tot?' tot':''}" data-cat="${esc(key)}" aria-pressed="${UI.mgCat===key}">
+      <div class="gl-top"><b>${esc(name)}</b>${st(c)}</div>
+      <div class="gl-nums"><span>Consensus <em>${n0(c.cons)}</em></span><span>Plan <em>${n0(c.aop||null)}</em></span><span>Gap <em>${sgn(Math.round(c.cons-(c.aop||0)))}</em></span>${d!=null?`<span>vs. previous <em>${sgn(Math.round(d))}</em></span>`:''}</div>
+      <div class="gl-bar" aria-hidden="true"><span class="ax"></span><span class="tol" style="left:${pos(-SET.tolPlan)}%;right:${100-pos(SET.tolPlan)}%"></span><span class="zero" style="left:${x0}%"></span>
+        <span class="v" style="left:${Math.min(x0,x1)}%;width:${Math.abs(x1-x0)}%;background:${col}"></span>
+        <span class="lab" style="${c.gap>=0?`left:calc(${x1}% + 6px)`:`right:calc(${100-x1}% + 6px)`};color:${col}">${spct(c.gap)}</span></div></button>`;};
+  $('mgTable').innerHTML=c3.map(c=>card(c.category,c,'cat:'+c.category,false)).join('')+card('Total',g,'all',true);
   if(NOTES.risks==null){const low=R.byCat.filter(c=>isFinite(c.fva)).sort((a,b)=>a.fva-b.fva)[0],np=R.prodL12.filter(p=>p.months<12);
     NOTES.risks=[low&&low.fva<0?`Risk: ${low.name} consensus input was ${spct(low.consBias)} too high over the last 12 months (FVA ${pts(low.fva)}).`:'',
       np.length?`Risk: ${np.map(p=>p.product).join(', ')} ${np.length>1?'have':'has'} less than 12 months of history; the forecast depends on the launch plan.`:'',
@@ -940,7 +968,9 @@ function drawMg(){if(!R.hasPlan){$('mgChart').innerHTML='<p class="empty">No Pla
   const series=[{values:st,color:'var(--line)'},{values:cons,color:'var(--blue)'}];if(aop)series.push({values:aop,color:'var(--navy-bar)'});
   colChart(box,{labels:FU.map(mLabel),series,fmt:kfmt,values:x=>nf.format(Math.round(x)),
     tipFmt:i=>`${mLabel(FU[i])}<br>Statistical <b>${nf.format(Math.round(st[i]))}</b><br>Consensus <b>${nf.format(Math.round(cons[i]))}</b>${aop?`<br>Plan <b>${aop[i]==null?'—':nf.format(aop[i])}</b><br>Gap <b>${aop[i]?spct((cons[i]-aop[i])/aop[i]):'—'}</b>`:''}`});}
-$('mgCat').addEventListener('change',e=>{UI.mgCat=e.target.value;drawMg();});
+$('mgCat').addEventListener('change',e=>{UI.mgCat=e.target.value;drawMg();syncGl();});
+function syncGl(){document.querySelectorAll('#mgTable .gl').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cat===UI.mgCat));}
+$('mgTable').addEventListener('click',e=>{const b=e.target.closest('[data-cat]');if(!b)return;UI.mgCat=b.dataset.cat;drawMg();syncGl();});
 $('revBack').addEventListener('change',e=>{UI.revK=+e.target.value;renderReview();drawWf();});
 $('revPer').addEventListener('change',e=>{UI.revH=+e.target.value;renderMgmt();renderReview();drawWf();drawMg();});
 
