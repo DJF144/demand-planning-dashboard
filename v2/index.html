@@ -332,12 +332,11 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
     <section class="panel" aria-labelledby="planH">
       <div class="phead"><h2 id="planH">Plan · next 3 months</h2><select class="sel" id="revPer" aria-label="Plan horizon"></select></div>
       <p class="lead" id="mgHead">—</p>
-      <div class="stats" id="planKpis"></div>
+      <h3 class="subh" id="mgtH" hidden>Months 1–3 by category</h3>
+      <div class="tbl compact" style="margin-bottom:18px"><table><thead><tr><th>Category</th><th>Statistical</th><th>Consensus</th><th>Plan</th><th>Gap</th><th class="c">Status</th></tr></thead><tbody id="mgTable"></tbody></table></div>
           <div class="bar"><span class="lbl">Category / product</span><select class="sel" id="mgCat" aria-label="Category or product"></select></div>
           <div class="chart" id="mgChart"></div>
           <div class="legend"><span><i style="width:11px;height:11px;border-radius:2px;background:var(--line);display:inline-block"></i>Statistical forecast</span><span><i style="width:11px;height:11px;border-radius:2px;background:var(--blue);display:inline-block"></i>Consensus</span><span id="mgAopLeg"><i style="width:11px;height:11px;border-radius:2px;background:var(--navy-bar);display:inline-block"></i>Business plan (AOP)</span><span id="mgNote" hidden>The business plan is set by category</span></div>
-      <h3 class="subh" id="mgtH">Months 1–3 by category</h3>
-      <div class="tbl compact"><table><thead><tr><th>Category</th><th>Statistical</th><th>Consensus</th><th>Plan</th><th>Gap</th><th class="c">Status</th></tr></thead><tbody id="mgTable"></tbody></table></div>
     </section>
     <div class="grid2b">
       <section class="panel" aria-labelledby="wfH">
@@ -909,11 +908,10 @@ function renderMgmt(){
   const rg=`${mLabel(R.fut[h0])} – ${mLabel(R.fut[P-1])}`,nm=wl.toLowerCase();$('planH').textContent=`Plan · ${wl} (${rg})`;$('wfH').textContent=`Change vs. previous plan · ${nm} (${rg})`;$('chgH').textContent=`Largest changes by product · ${nm}`;
   $('revPer').innerHTML=Object.entries(WIN).map(([k,w])=>`<option value="${k}"${k===UI.revW?' selected':''}>${w[2]} (${mLabel(R.fut[w[0]])} – ${mLabel(R.fut[w[1]-1])})</option>`).join('');
   const ch=R.hasPrev?changes(h0,P).tot:null;
-  if(!R.hasPlan){$('mgHead').textContent='Add a Plan sheet to compare the consensus with the business plan.';$('planKpis').innerHTML='';$('mgTable').innerHTML='';return;}
+  if(!R.hasPlan){$('mgHead').textContent='Add a Plan sheet to compare the consensus with the business plan.';$('mgTable').innerHTML='';return;}
   const rv=c3.filter(c=>Math.abs(c.gap)>SET.tolPlan).sort((a,b)=>Math.abs(b.gap)-Math.abs(a.gap));
   $('mgHead').innerHTML=(Math.abs(g.gap)<0.0005?`Consensus is <b>in line with</b> the business plan (${sgn(Math.round(g.cons-g.aop))} units). `:`Consensus is <b>${spct(g.gap)}</b> ${g.gap>=0?'above':'below'} the business plan. `)+(rv.length?`${rv.map(c=>`${esc(c.category)} (${spct(c.gap)})`).join(' and ')} ${rv.length>1?'need':'needs'} review.`:'All categories are within tolerance.');
-  $('planKpis').innerHTML=[[nf.format(Math.round(g.cons)),`Consensus · ${nm}`],[nf.format(g.aop),`Business plan · ${nm}`],[spct(g.gap)+' '+st(g),'Gap vs. plan'],
-    [ch&&ch.pc?`${sgn(Math.round(ch.c-ch.pc))} <small style="font-size:13px;color:var(--muted)">${spct((ch.c-ch.pc)/ch.pc)}</small>`:'—','Change vs. previous plan']].map(([v,k])=>`<div><b>${v}</b><span>${k}</span></div>`).join('');
+
   $('mgtH').textContent=`${wl} by category`;
   const row=(name,c,key,tot)=>`<tr data-cat="${esc(key)}" class="${tot?'tot':''}${UI.mgCat===key?' sel':''}"><td>${esc(name)}</td>${td(n0(c.stat))}${td(n0(c.cons))}${td(n0(c.aop||null))}${td(spct(c.gap))}<td class="c">${st(c)}</td></tr>`;
   $('mgTable').innerHTML=c3.map(c=>row(c.category,c,'cat:'+c.category,false)).join('')+row('Total',g,'all',true);
