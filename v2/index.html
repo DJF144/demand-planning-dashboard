@@ -69,7 +69,9 @@ main .wrap{padding-block:20px 48px;display:grid;gap:20px}
 .lead{font:600 16px/1.45 var(--f-display);margin:0 0 14px;max-width:80ch}
 .phead .fgrp{flex:0 0 auto}
 .gl-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:4px 0 10px;font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.gaplist{display:flex;flex-direction:column;gap:8px}
+.gaplist{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:860px){.gaplist{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+@media (max-width:520px){.gaplist{grid-template-columns:minmax(0,1fr)}}
 .gl{display:block;width:100%;text-align:left;background:var(--soft);border:1px solid transparent;border-radius:8px;padding:10px 12px;cursor:pointer;color:var(--ink);font:inherit}
 .gl:hover{border-color:var(--line)}
 .gl[aria-pressed="true"]{border-color:var(--blue);background:var(--panel);box-shadow:0 0 0 1px var(--blue) inset}
@@ -324,16 +326,12 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
       <div class="phead"><h2 id="planH">Plan · next 3 months</h2><select class="sel" id="revPer" aria-label="Plan horizon"></select></div>
       <p class="lead" id="mgHead">—</p>
       <div class="stats" id="planKpis"></div>
-      <div class="grid2w">
-        <div>
           <div class="bar"><span class="lbl">Category / product</span><select class="sel" id="mgCat" aria-label="Category or product"></select></div>
           <div class="chart" id="mgChart"></div>
           <div class="legend"><span><i style="width:11px;height:11px;border-radius:2px;background:var(--line);display:inline-block"></i>Statistical forecast</span><span><i style="width:11px;height:11px;border-radius:2px;background:var(--blue);display:inline-block"></i>Consensus</span><span id="mgAopLeg"><i style="width:11px;height:11px;border-radius:2px;background:var(--navy-bar);display:inline-block"></i>Business plan (AOP)</span><span id="mgNote" hidden>The business plan is set by category</span></div>
-        </div>
-        <div>
+      <div style="margin-top:18px">
           <div class="gl-h"><span>Gap vs. plan by category</span><span id="gapTol"></span></div>
           <div class="gaplist" id="mgTable" role="list"></div>
-        </div>
       </div>
     </section>
     <div class="grid2b">
