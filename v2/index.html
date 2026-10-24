@@ -378,14 +378,9 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
 
   <!-- Inventory -->
   <div id="pg-inv" class="page" role="tabpanel" aria-labelledby="tab-inv" hidden>
-    <section class="panel" aria-labelledby="covH">
-      <h2 id="covH">Coverage by location</h2>
-      <div class="filters" id="filters" role="group" aria-label="Filter by RDC"></div>
-      <div class="chart" id="covChart"></div>
-      <div class="legend"><span><i style="width:11px;height:11px;border-radius:2px;background:var(--blue);display:inline-block"></i>Coverage (days)</span><span><i style="width:11px;height:11px;border-radius:2px;background:var(--bad);display:inline-block"></i>Below reorder point</span><span><i style="width:3px;height:13px;background:var(--ink);display:inline-block"></i>Reorder point (days)</span><span>Coverage = (stock + on order) ÷ daily demand</span></div>
-    </section>
     <section class="panel" aria-labelledby="invH">
       <h2 id="invH">Inventory and replenishment</h2>
+      <div class="filters" id="filters" role="group" aria-label="Filter by RDC"></div>
       <div class="tbl"><table class="inv3">
         <thead><tr><th>SKU</th><th>Product</th><th>RDC</th><th>Current Stock</th><th>On Order</th><th>Lead Time (weeks)</th><th>Avg Monthly Demand (12 mo)</th><th>Demand Std Dev (12 mo)</th><th>Next-Month Consensus</th><th>Lead-Time Demand</th><th>Safety Stock</th><th>Reorder Point</th><th>Inventory Position</th><th>Days of Supply</th><th class="c">Status</th><th>Suggested Order Qty</th></tr></thead>
         <tbody id="invBody"></tbody>
@@ -808,7 +803,6 @@ function render(){
 function draw(){
   if(PAGE==='dash'){drawAvf();drawFill();}
   if(PAGE==='cons'){drawMg();drawWf();}
-  if(PAGE==='inv')drawCov();
   if(PAGE==='set'&&UI.seaCat)seasonChart($('seaChart'),R.idx[UI.seaCat]);
 }
 function renderDash(){
@@ -1023,7 +1017,7 @@ $('sfCat').addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(
 $('sfProd').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(!b)return;UI.sfProd=b.dataset.p;renderSF();});
 $('sfRdc').addEventListener('click',e=>{const b=e.target.closest('[data-r]');if(!b)return;UI.sfRdc=b.dataset.r;renderSF();});
 $('exTypes').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;UI.exType=b.dataset.t;renderEx();});
-$('filters').addEventListener('click',e=>{const b=e.target.closest('[data-rdc]');if(!b)return;UI.invRdc=b.dataset.rdc;renderInv();drawCov();});
+$('filters').addEventListener('click',e=>{const b=e.target.closest('[data-rdc]');if(!b)return;UI.invRdc=b.dataset.rdc;renderInv();});
 const PAGES=['dash','data','sf','ex','cons','inv','acc','set'];
 function showTab(t){PAGE=t;PAGES.forEach(p=>{$('pg-'+p).hidden=p!==t;$('tab-'+p).setAttribute('aria-selected',p===t);});draw();}
 PAGES.forEach(p=>$('tab-'+p).addEventListener('click',()=>showTab(p)));
