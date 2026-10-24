@@ -697,8 +697,8 @@ function attachTip(box,xs,html){
 }
 function niceMax(v){const p=Math.pow(10,Math.floor(Math.log10(v||1)));const n=v/p;return(n<=1?1:n<=1.5?1.5:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p;}
 const kfmt=v=>Math.abs(v)>=1000?(v/1000).toFixed(v%1000?1:0)+'k':nf.format(v);
-function lineChart(box,{labels,series,yMin,yMax,fmt,ticks=5,dots=[],tipFmt}){
-  const W=Math.max(300,box.clientWidth||600),H=Math.round(Math.min(300,Math.max(210,W*0.42))),L=48,Rr=14,T=12,B=28;
+function lineChart(box,{labels,series,yMin,yMax,fmt,ticks=5,dots=[],tipFmt,yTitle}){
+  const W=Math.max(300,box.clientWidth||600),H=Math.round(Math.min(300,Math.max(210,W*0.42))),L=48,Rr=14,T=yTitle?26:12,B=28;
   const x=i=>L+(labels.length<2?0:i*(W-L-Rr)/(labels.length-1)),y=v=>T+(1-(v-yMin)/(yMax-yMin))*(H-T-B);
   let g='';for(let t=0;t<=ticks;t++){const v=yMin+(yMax-yMin)*t/ticks,yy=y(v);g+=`<line x1="${L}" x2="${W-Rr}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${L-8}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">${fmt(v)}</text>`;}
   const step=Math.ceil(labels.length/(W<520?4:7));labels.forEach((l,i)=>{if(i%step===0||i===labels.length-1)g+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">${esc(l)}</text>`;});
@@ -706,12 +706,13 @@ function lineChart(box,{labels,series,yMin,yMax,fmt,ticks=5,dots=[],tipFmt}){
     if(s.area)g+=`<path d="M${pts[0][0]},${y(yMin)} ${pts.map(p=>'L'+p[0]+','+p[1]).join(' ')} L${pts[pts.length-1][0]},${y(yMin)} Z" fill="${s.color}" opacity=".08"/>`;
     g+=`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${s.color}" stroke-width="2.4"${s.dash?' stroke-dasharray="6 5"':''} stroke-linejoin="round"/>`;
     if(s.end){const p=pts[pts.length-1];g+=`<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="${s.color}"/>`;}});
+  if(yTitle)g+=`<text x="${L-8}" y="11" text-anchor="start" font-size="11" fill="var(--muted)" font-family="var(--f-mono)" transform="translate(${-(L-8)+4},0)">${esc(yTitle)}</text>`;
   dots.forEach(i=>{const v=series[0].values[i];if(v!=null)g+=`<circle cx="${x(i)}" cy="${y(v)}" r="5" fill="var(--red)" stroke="var(--panel)" stroke-width="2"/>`;});
   box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(box.dataset.label||'Chart')}">${g}</svg>`;
   if(tipFmt)attachTip(box,labels.map((_,i)=>x(i)),tipFmt);
 }
-function colChart(box,{labels,series,line,fmt,tipFmt,values}){
-  const W=Math.max(300,box.clientWidth||600),H=Math.round(Math.min(values?330:300,Math.max(values?250:210,W*0.42))),L=48,Rr=10,T=values?24:14,B=28;
+function colChart(box,{labels,series,line,fmt,tipFmt,values,yTitle}){
+  const W=Math.max(300,box.clientWidth||600),H=Math.round(Math.min(values?330:300,Math.max(values?250:210,W*0.42))),L=48,Rr=10,T=values||yTitle?26:14,B=28;
   const all=series.flatMap(s=>s.values).concat(line?line.values.filter(v=>v!=null):[]);
   const mx=niceMax(Math.max(1,...all)*(values?1.06:1)),lead=mx/Math.pow(10,Math.floor(Math.log10(mx))),nt=lead===2?4:5;
   const gw=(W-L-Rr)/labels.length,bw=Math.min(values?44:30,(gw*0.78)/series.length),y=v=>T+(1-v/mx)*(H-T-B);
@@ -721,19 +722,21 @@ function colChart(box,{labels,series,line,fmt,tipFmt,values}){
       if(values&&raw!=null){const t=values(raw);g+=bw>=38?`<text x="${bc}" y="${y(v)-5}" text-anchor="middle" font-size="10.5" fill="var(--ink)" font-family="var(--f-mono)">${t}</text>`
         :`<text transform="translate(${bc+3.5},${y(v)-4}) rotate(-90)" font-size="10" fill="var(--ink)" font-family="var(--f-mono)">${t}</text>`;}});
     g+=`<text x="${cx}" y="${H-9}" text-anchor="middle" font-size="11.5" fill="var(--muted)" font-family="var(--f-mono)">${esc(gw<56?lb.slice(0,3):lb)}</text>`;});
+  if(yTitle)g+=`<text x="4" y="11" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">${esc(yTitle)}</text>`;
   if(line){const pts=line.values.map((v,i)=>v==null?null:[L+gw*i+gw/2,y(v)]).filter(Boolean);
     if(pts.length>1)g+=`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${line.color}" stroke-width="2" stroke-dasharray="5 4"/>`;
     pts.forEach(p=>g+=`<rect x="${p[0]-5}" y="${p[1]-5}" width="10" height="10" transform="rotate(45 ${p[0]} ${p[1]})" fill="${line.color}" stroke="var(--panel)" stroke-width="1.5"/>`);}
   box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(box.dataset.label||'Chart')}">${g}</svg>`;
   if(tipFmt)attachTip(box,labels.map((_,i)=>L+gw*i+gw/2),tipFmt);
 }
-function wfChart(box,steps){
+function wfChart(box,steps,yTitle='Units'){
   const W=Math.max(300,box.clientWidth||600),H=Math.round(Math.min(300,Math.max(220,W*0.45))),L=52,RM=10,T=22,B=40;
   let run=0;const bars=steps.map(st=>{if(st.total){run=st.v;return {...st,y0:0,y1:st.v};}const y0=run;run+=st.v;return {...st,y0,y1:run};});
   const lo=Math.min(...bars.map(b=>b.total?b.v:Math.min(b.y0,b.y1))),hi=Math.max(...bars.map(b=>Math.max(b.y0,b.y1)));
   const span=Math.max(hi-lo,1),stepT=niceMax(span*1.6/4),yMin=Math.max(0,Math.floor((lo-span*0.35)/stepT)*stepT),yMax=Math.ceil((hi+span*0.25)/stepT)*stepT;
   const y=v=>T+(1-(Math.max(v,yMin)-yMin)/(yMax-yMin))*(H-T-B),gw=(W-L-RM)/bars.length,bw=Math.min(54,gw*0.62);
   let g='';for(let v=yMin;v<=yMax+1e-6;v+=stepT){const yy=y(v);g+=`<line x1="${L}" x2="${W-RM}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${L-8}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">${kfmt(v)}</text>`;}
+  g+=`<text x="4" y="11" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">${esc(yTitle)}</text>`;
   bars.forEach((b,i)=>{const cx=L+gw*i+gw/2,top=y(Math.max(b.y0,b.y1)),bot=b.total?y(yMin):y(Math.min(b.y0,b.y1));
     const col=b.total?'var(--navy-bar)':b.v>=0?'var(--ok)':'var(--bad)';
     g+=`<rect x="${cx-bw/2}" y="${top}" width="${bw}" height="${Math.max(1.5,bot-top)}" rx="2" fill="${col}"/>`;
@@ -809,7 +812,7 @@ function renderDash(){
 }
 function drawAvf(){const M=R.monthly,box=$('avf');box.dataset.label='Actual vs statistical forecast per month';
   lineChart(box,{labels:M.map(m=>mLabel(m.m)),series:[{values:M.map(m=>m.a),color:'var(--blue)',area:true,end:true},{values:M.map(m=>m.f),color:'var(--red)',dash:true}],
-    yMin:0,yMax:niceMax(Math.max(...M.flatMap(m=>[m.a,m.f]))),fmt:kfmt,dots:M.map((m,i)=>m.promo?i:-1).filter(i=>i>=0),
+    yMin:0,yMax:niceMax(Math.max(...M.flatMap(m=>[m.a,m.f]))),fmt:kfmt,yTitle:'Units',dots:M.map((m,i)=>m.promo?i:-1).filter(i=>i>=0),
     tipFmt:i=>{const m=M[i],e=m.a?(m.f-m.a)/m.a:0;return `${mLabel(m.m)}${m.promo?' · promotion':''}<br>Actual <b>${nf.format(m.a)}</b><br>Forecast <b>${nf.format(m.f)}</b><br>Error <b>${spct(e)}</b>`;}});}
 function drawFill(){const box=$('fill');if(!R.ord.length){box.innerHTML='<p class="empty">No Orders sheet in this file.</p>';return;}
   box.dataset.label='Fulfillment rate per month';const lo=Math.min(0.8,Math.floor(Math.min(...R.ord.map(o=>o.rate),SET.target)*20)/20);
@@ -965,7 +968,7 @@ function drawMg(){if(!R.hasPlan){$('mgChart').innerHTML='<p class="empty">No Pla
   $('mgAopLeg').style.display=isSku?'none':'';$('mgNote').style.display=isSku?'':'none';
   const box=$('mgChart');box.dataset.label='Statistical forecast, consensus and business plan by month';
   const series=[{values:st,color:'var(--line)'},{values:cons,color:'var(--blue)'}];if(aop)series.push({values:aop,color:'var(--navy-bar)'});
-  colChart(box,{labels:FU.map(mLabel),series,fmt:kfmt,values:x=>nf.format(Math.round(x)),
+  colChart(box,{labels:FU.map(mLabel),series,fmt:kfmt,yTitle:'Units',values:x=>nf.format(Math.round(x)),
     tipFmt:i=>`${mLabel(FU[i])}<br>Statistical <b>${nf.format(Math.round(st[i]))}</b><br>Consensus <b>${nf.format(Math.round(cons[i]))}</b>${aop?`<br>Plan <b>${aop[i]==null?'—':nf.format(aop[i])}</b><br>Gap <b>${aop[i]?spct((cons[i]-aop[i])/aop[i]):'—'}</b>`:''}`});}
 $('mgCat').addEventListener('change',e=>{UI.mgCat=e.target.value;drawMg();syncGl();});
 function syncGl(){document.querySelectorAll('#mgTable tr').forEach(r=>r.classList.toggle('sel',r.dataset.cat===UI.mgCat));}
