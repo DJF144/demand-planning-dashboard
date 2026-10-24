@@ -281,7 +281,6 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
         <span class="name" id="srcName">Sample data</span>
         <span style="display:flex;gap:8px;flex-wrap:wrap">
           <a class="btn btn-outline" id="sampleLink" href="demand-planning-sample-data.xlsx" download>Download sample file</a>
-          <button class="btn btn-outline" id="useSample" type="button">Load sample data</button>
           <button class="btn btn-primary" id="uploadBtn" type="button">Import Excel</button>
         </span>
         <input type="file" id="fileIn" accept=".xlsx,.xls" hidden>
@@ -1101,7 +1100,7 @@ function handleFile(f){
 }
 $('uploadBtn').addEventListener('click',()=>$('fileIn').click());
 $('fileIn').addEventListener('change',e=>{handleFile(e.target.files[0]);e.target.value='';});
-$('useSample').addEventListener('click',()=>{load(fromSample(SAMPLE),'Sample data');$('msg').hidden=true;});
+if($('useSample'))$('useSample').addEventListener('click',()=>{load(fromSample(SAMPLE),'Sample data');$('msg').hidden=true;});
 const drop=$('drop');
 ['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over');}));
 ['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over');}));
