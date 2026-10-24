@@ -68,6 +68,8 @@ main .wrap{padding-block:20px 48px;display:grid;gap:20px}
 .phead h2{margin:0}
 .lead{font:600 16px/1.45 var(--f-display);margin:0 0 14px;max-width:80ch}
 .phead .fgrp{flex:0 0 auto}
+.period{font:500 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+.period b{color:var(--ink);font-weight:600}
 .subh{font:700 15px/1.2 var(--f-display);margin:22px 0 10px}
 #mgTable tr{cursor:pointer}
 #mgTable td.num,#mgTable~* td.num{text-align:right}
@@ -234,6 +236,7 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
 
   <!-- Overview -->
   <div id="pg-dash" class="page" role="tabpanel" aria-labelledby="tab-dash">
+    <p class="period" id="dashPeriod"></p>
     <section class="kpis" aria-label="Key figures">
       <div class="kpi"><span class="k">Forecast accuracy</span><span class="v" id="kAcc">—</span><span class="d" id="kAccD">—</span></div>
       <div class="kpi"><span class="k">Forecast bias</span><span class="v" id="kBias">—</span><span class="d" id="kBiasD">—</span></div>
@@ -788,7 +791,8 @@ function draw(){
 }
 function renderDash(){
   const T=R.total;
-  $('kAcc').textContent=pct(1-T.wmape);$('kAccD').textContent=`WMAPE ${pct(T.wmape)} · MAPE ${pct(T.mape)} · last 12 months`;
+  $('kAcc').textContent=pct(1-T.wmape);$('kAccD').textContent=`WMAPE ${pct(T.wmape)} · MAPE ${pct(T.mape)}`;
+  $('dashPeriod').innerHTML=`Last 12 months · <b>${mLabel(R.months[R.evalFrom])} – ${mLabel(R.months[R.last])}</b>`;
   $('kBias').textContent=spct(T.bias);$('kBiasD').textContent=!isFinite(T.bias)?'—':Math.abs(T.bias)<0.02?'Within ±2% · no systematic bias':T.bias>0?'Over-forecast · excess stock risk':'Under-forecast · backorder risk';
   if(R.ord.length){const on=R.fillRate>=SET.target;$('kFill').textContent=pct(R.fillRate);$('kFillD').innerHTML=`${pill(on?'ok':'bad',on?'On target':'Below target')} target ${pct(SET.target,0)}`;}
   else{$('kFill').textContent='—';$('kFillD').textContent='No Orders sheet';}
