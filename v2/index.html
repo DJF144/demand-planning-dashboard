@@ -378,9 +378,14 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
 
   <!-- Inventory -->
   <div id="pg-inv" class="page" role="tabpanel" aria-labelledby="tab-inv" hidden>
+    <section class="panel" aria-labelledby="covH">
+      <h2 id="covH">Coverage by location</h2>
+      <div class="filters" id="filters" role="group" aria-label="Filter by RDC"></div>
+      <div class="chart" id="covChart"></div>
+      <div class="legend"><span><i style="width:11px;height:11px;border-radius:2px;background:var(--blue);display:inline-block"></i>Coverage (days)</span><span><i style="width:11px;height:11px;border-radius:2px;background:var(--bad);display:inline-block"></i>Below reorder point</span><span><i style="width:3px;height:13px;background:var(--ink);display:inline-block"></i>Reorder point (days)</span><span>Coverage = (stock + on order) ÷ daily demand</span></div>
+    </section>
     <section class="panel" aria-labelledby="invH">
       <h2 id="invH">Inventory and replenishment</h2>
-      <div class="filters" id="filters" role="group" aria-label="Filter by RDC"></div>
       <div class="tbl"><table class="inv3">
         <thead><tr><th>SKU</th><th>Product</th><th>RDC</th><th>Current Stock</th><th>On Order</th><th>Lead Time (weeks)</th><th>Avg Monthly Demand (12 mo)</th><th>Demand Std Dev (12 mo)</th><th>Next-Month Consensus</th><th>Lead-Time Demand</th><th>Safety Stock</th><th>Reorder Point</th><th>Inventory Position</th><th>Days of Supply</th><th class="c">Status</th><th>Suggested Order Qty</th></tr></thead>
         <tbody id="invBody"></tbody>
@@ -746,6 +751,19 @@ function wfChart(box,steps,yTitle='Units'){
     l1.forEach((t,k)=>g+=`<text x="${cx}" y="${H-B+16+k*13}" text-anchor="middle" font-size="11" fill="var(--muted)">${esc(t)}</text>`);});
   box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(box.dataset.label||'Waterfall')}">${g}</svg>`;
 }
+function hbarChart(box,rows,{max=180}={}){
+  const W=Math.max(300,box.clientWidth||600),narrow=W<560,LW=narrow?6:230,RM=narrow?40:46,rh=narrow?34:20,T=22,H=T+rows.length*rh+8;
+  const top=Math.min(max,Math.max(30,...rows.map(r=>Math.max(r.v,r.mark)))*1.05),step=top>120?(narrow?60:30):top>60?(narrow?30:15):10,x=v=>LW+Math.min(v,top)/top*(W-LW-RM);
+  let g='';for(let v=0;v<=top;v+=step){const xx=x(v);g+=`<line x1="${xx}" x2="${xx}" y1="${T-4}" y2="${H-6}" stroke="var(--line)"/><text x="${Math.max(xx,narrow?10:0)}" y="${T-8}" text-anchor="middle" font-size="10.5" fill="var(--muted)" font-family="var(--f-mono)">${v}</text>`;}
+  if(!narrow)g+=`<text x="4" y="12" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">Days</text>`;
+  rows.forEach((r,i)=>{const y0=T+i*rh,bh=narrow?10:rh-7,cy=narrow?y0+24:y0+rh/2;
+    if(narrow)g+=`<text x="${LW}" y="${y0+12}" font-size="11.5" fill="var(--ink)">${esc(r.label)}</text>`;
+    else{const lab=r.label.length>34?r.label.slice(0,33)+'…':r.label;g+=`<text x="${LW-8}" y="${cy+4}" text-anchor="end" font-size="12" fill="var(--ink)"><title>${esc(r.label)}</title>${esc(lab)}</text>`;}
+    g+=`<rect x="${LW}" y="${cy-bh/2}" width="${Math.max(1.5,x(r.v)-LW)}" height="${bh}" rx="2" fill="${r.bad?'var(--bad)':'var(--blue)'}" opacity="${r.bad?1:.85}"/>`;
+    const mx=x(r.mark);g+=`<line x1="${mx}" x2="${mx}" y1="${cy-bh/2-3}" y2="${cy+bh/2+3}" stroke="var(--ink)" stroke-width="2.5"/>`;
+    g+=`<text x="${Math.max(x(r.v),mx)+6}" y="${cy+4}" font-size="11" fill="${r.bad?'var(--bad)':'var(--muted)'}" font-family="var(--f-mono)">${r.v>top?Math.round(top)+'+':Math.round(r.v)}</text>`;});
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(box.dataset.label||'Coverage by location')}">${g}</svg>`;
+}
 function seasonChart(box,idx){
   const W=Math.max(300,box.clientWidth||600),H=Math.round(Math.min(340,Math.max(200,W*0.5))),L=40,RM=8,T=18,B=28;
   const v=[];for(let m=1;m<=12;m++)v.push(idx[m]);const dev=Math.max(0.25,...v.map(x=>Math.abs(x-1)))*1.15,y=x=>T+(1-(x-(1-dev))/(2*dev))*(H-T-B);
@@ -790,6 +808,7 @@ function render(){
 function draw(){
   if(PAGE==='dash'){drawAvf();drawFill();}
   if(PAGE==='cons'){drawMg();drawWf();}
+  if(PAGE==='inv')drawCov();
   if(PAGE==='set'&&UI.seaCat)seasonChart($('seaChart'),R.idx[UI.seaCat]);
 }
 function renderDash(){
@@ -905,9 +924,12 @@ $('pvRdc').addEventListener('change',e=>{UI.pvRdc=e.target.value;renderCons();})
 $('pvRelease').addEventListener('click',()=>{const d=new Date();RELEASED={at:d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}),changed:false};render();});
 $('pvReset').addEventListener('click',()=>{INPUTS=DPE.buildInputs(DATA,SET,DEFAULT_RULES);RELEASED=null;NOTES.risks=NOTES.dec=null;render();});
 
+function invRows(){return R.inv.filter(r=>UI.invRdc==='All'||(UI.invRdc==='__reorder'?r.reorder:r.rdc===UI.invRdc));}
+function drawCov(){const box=$('covChart'),rows=invRows().filter(r=>r.fc>0).map(r=>{const d=r.fc/30.4;return {label:`${r.product} · ${r.rdc}`,v:r.pos/d,mark:r.rop/d,bad:r.reorder};}).sort((a,b)=>a.v-b.v);
+  box.dataset.label='Coverage in days by product and RDC, with reorder point';if(!rows.length){box.innerHTML='<p class="empty">No locations.</p>';return;}hbarChart(box,rows);}
 function renderInv(){
   chips($('filters'),['All',...new Set(R.inv.map(r=>r.rdc)),'__reorder'],UI.invRdc,'rdc',v=>v==='__reorder'?'Reorder only':v);
-  const rows=R.inv.filter(r=>UI.invRdc==='All'||(UI.invRdc==='__reorder'?r.reorder:r.rdc===UI.invRdc));
+  const rows=invRows();
   $('invBody').innerHTML=rows.map(r=>`<tr class="${r.reorder?'hl':''}"><td>${esc(r.sku)}</td><td>${esc(r.product)}</td><td>${esc(r.rdc)}</td>${td(n0(r.stock))}${td(n0(r.onOrder))}${td(r.lt)}${td(n0(r.avg))}${td(n0(r.sd))}${td(n0(r.fc))}${td(n0(r.ltd))}${td(n0(r.ss))}${td(n0(r.rop))}${td(n0(r.pos))}${td(isFinite(r.dos)?Math.round(r.dos):'—')}<td class="c">${r.reorder?pill('bad','Reorder'):pill('ok','OK')}</td>${td(r.sugg?nf.format(r.sugg):'–')}</tr>`).join('');
 }
 function renderMgmt(){
@@ -1001,7 +1023,7 @@ $('sfCat').addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(
 $('sfProd').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(!b)return;UI.sfProd=b.dataset.p;renderSF();});
 $('sfRdc').addEventListener('click',e=>{const b=e.target.closest('[data-r]');if(!b)return;UI.sfRdc=b.dataset.r;renderSF();});
 $('exTypes').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;UI.exType=b.dataset.t;renderEx();});
-$('filters').addEventListener('click',e=>{const b=e.target.closest('[data-rdc]');if(!b)return;UI.invRdc=b.dataset.rdc;renderInv();});
+$('filters').addEventListener('click',e=>{const b=e.target.closest('[data-rdc]');if(!b)return;UI.invRdc=b.dataset.rdc;renderInv();drawCov();});
 const PAGES=['dash','data','sf','ex','cons','inv','acc','set'];
 function showTab(t){PAGE=t;PAGES.forEach(p=>{$('pg-'+p).hidden=p!==t;$('tab-'+p).setAttribute('aria-selected',p===t);});draw();}
 PAGES.forEach(p=>$('tab-'+p).addEventListener('click',()=>showTab(p)));
