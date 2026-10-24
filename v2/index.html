@@ -220,12 +220,12 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
     <h1 class="ctx-title">Demand Planning <span class="sep">/</span> North America</h1>
     <nav class="tabs" role="tablist" aria-label="Pages">
       <button type="button" class="tab" role="tab" id="tab-dash" aria-controls="pg-dash" aria-selected="true">Overview</button>
-      <button type="button" class="tab" role="tab" id="tab-data" aria-controls="pg-data" aria-selected="false"><span class="no">01</span>Data</button>
-      <button type="button" class="tab" role="tab" id="tab-sf" aria-controls="pg-sf" aria-selected="false"><span class="no">03</span>Forecast</button>
-      <button type="button" class="tab" role="tab" id="tab-ex" aria-controls="pg-ex" aria-selected="false"><span class="no">04</span>Exceptions</button>
-      <button type="button" class="tab" role="tab" id="tab-cons" aria-controls="pg-cons" aria-selected="false"><span class="no">05–08</span>Demand Review</button>
+      <button type="button" class="tab" role="tab" id="tab-sf" aria-controls="pg-sf" aria-selected="false">Forecast</button>
+      <button type="button" class="tab" role="tab" id="tab-acc" aria-controls="pg-acc" aria-selected="false">Accuracy</button>
+      <button type="button" class="tab" role="tab" id="tab-ex" aria-controls="pg-ex" aria-selected="false">Exceptions</button>
       <button type="button" class="tab" role="tab" id="tab-inv" aria-controls="pg-inv" aria-selected="false">Inventory</button>
-      <button type="button" class="tab" role="tab" id="tab-acc" aria-controls="pg-acc" aria-selected="false"><span class="no">09</span>Accuracy</button>
+      <button type="button" class="tab" role="tab" id="tab-cons" aria-controls="pg-cons" aria-selected="false">Demand Review</button>
+      <button type="button" class="tab" role="tab" id="tab-data" aria-controls="pg-data" aria-selected="false">Data</button>
       <button type="button" class="tab" role="tab" id="tab-set" aria-controls="pg-set" aria-selected="false">Settings</button>
     </nav>
   </div>
@@ -1015,7 +1015,7 @@ $('sfProd').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if
 $('sfRdc').addEventListener('click',e=>{const b=e.target.closest('[data-r]');if(!b)return;UI.sfRdc=b.dataset.r;renderSF();});
 $('exTypes').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;UI.exType=b.dataset.t;renderEx();});
 $('filters').addEventListener('click',e=>{const b=e.target.closest('[data-rdc]');if(!b)return;UI.invRdc=b.dataset.rdc;renderInv();});
-const PAGES=['dash','data','sf','ex','cons','inv','acc','set'];
+const PAGES=['dash','sf','acc','ex','inv','cons','data','set'];
 function showTab(t){PAGE=t;PAGES.forEach(p=>{$('pg-'+p).hidden=p!==t;$('tab-'+p).setAttribute('aria-selected',p===t);});draw();}
 PAGES.forEach(p=>$('tab-'+p).addEventListener('click',()=>showTab(p)));
 const num=(id,f)=>$(id).addEventListener('change',e=>{const v=+e.target.value;if(isFinite(v)&&v>0){f(v);render();}});
