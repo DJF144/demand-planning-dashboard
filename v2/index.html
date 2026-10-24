@@ -283,11 +283,6 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
       </div>
       <div class="drop" id="drop">Drop .xlsx file here · sheets: Sales, Inventory, Orders, Plan, Consensus History, Previous Plan (optional)</div>
     </section>
-    <section class="panel" aria-labelledby="chkH">
-      <h2 id="chkH">Data check</h2>
-      <div class="stats" id="stats"></div>
-      <ul class="issues" id="issues"></ul>
-    </section>
     <div class="grid2b">
       <section class="panel" aria-labelledby="abcH">
         <h2 id="abcH">ABC/XYZ segmentation</h2>
@@ -834,8 +829,10 @@ function drawFill(){const box=$('fill');if(!R.ord.length){box.innerHTML='<p clas
 
 function renderData(){
   const c=R.counts;$('srcName').textContent=SRC;
+  if($('stats')){
   $('stats').innerHTML=[[nf.format(c.rows),'Sales rows'],[c.skus,'SKUs'],[c.rdcs,'RDCs'],[c.series,'SKU-locations'],[`${mLabel(c.from)} – ${mLabel(c.to)}`,'History'],[R.hasPlan?'Yes':'No','Business plan'],[R.hasCH?'Yes':'No','Consensus history'],[R.hasPrev?'Yes':'No','Previous plan']].map(([v,k])=>`<div><b>${esc(v)}</b><span>${esc(k)}</span></div>`).join('');
   const iss=R.issues;$('issues').innerHTML=iss.length?iss.slice(0,14).map(i=>`<li>${i.level==='warn'?pill('warn','Check'):pill('ok','Info')} ${i.sku?`<b>${esc(i.sku)}</b> ${esc(i.rdc)} · `:''}${esc(i.text)}</li>`).join('')+(iss.length>14?`<li>${iss.length-14} more</li>`:''):'<li>No data issues found.</li>';
+  }
   let h='<div></div><div class="h">X</div><div class="h">Y</div><div class="h">Z</div>';
   for(const a of ['A','B','C']){h+=`<div class="h">${a}</div>`;for(const x of ['X','Y','Z']){const ps=R.prodL12.filter(p=>p.abc===a&&p.xyz===x);h+=`<div class="m${a==='A'?' hot':''}">${ps.map(p=>`<span title="${esc(p.product)}">${esc(p.sku)}</span>`).join('')}</div>`;}}
   $('matrix').innerHTML=h;
