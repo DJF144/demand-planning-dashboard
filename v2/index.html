@@ -903,7 +903,7 @@ function renderCons(){
   const editRow=(label,who,row,vals)=>`<tr><td>${label}<span class="who">${who}</span></td>${vals.map((v,h)=>isSku?`<td><input class="cell${Math.round(v)?' set':''}" type="number" step="1" id="pv-${row}-${h}" data-row="${row}" data-h="${h}" value="${Math.round(v)}" aria-label="${esc(label)} ${mLabel(PF[h])}"></td>`:td(Math.round(v)?sgn(Math.round(v)):'–')).join('')}${td(Math.round(tot(vals))?sgn(Math.round(tot(vals))):'–')}</tr>`;
   let b=numRow('Statistical forecast',`System · ${models}`,st);
   b+=editRow('Planner adjustment','Demand planner','adj',adj);
-  b+=numRow('= Global Demand Plan','Calculated',gdp,'calc');
+  b+=numRow('= Local Demand Plan','Calculated',gdp,'calc');
   b+=editRow('Sales input','Sales','sales',sal);
   b+=editRow('Marketing / promotions','Marketing','mkt',mkt);
   b+=numRow('= Consensus Demand Plan','Calculated · released to supply planning',cons,'cons');
