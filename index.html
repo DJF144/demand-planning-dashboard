@@ -137,38 +137,6 @@ th.c,td.c{text-align:center!important}
 tr.tot td{font-weight:600;background:var(--soft)}
 footer{color:var(--muted);font-size:12px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
-#pg-ca .ca-note{margin:0;color:var(--muted);font-size:13px}
-#pg-ca .ca-help{margin:10px 0 0;color:var(--muted);font-size:12px}
-#pg-ca .ca-tbl{min-width:0}
-#pg-ca .ca-ftbl td:nth-child(2),#pg-ca .ca-ftbl th:nth-child(2),#pg-ca .ca-ftbl td:nth-child(3),#pg-ca .ca-ftbl th:nth-child(3),#pg-ca .ca-ftbl td:nth-child(8),#pg-ca .ca-ftbl th:nth-child(8){text-align:left}
-#pg-ca .ca-ftbl td:nth-child(3){white-space:normal;color:var(--muted);font-size:12.5px;min-width:180px}
-#pg-ca .ca-ftbl td:first-child,#pg-ca .ca-ftbl th:first-child{text-align:center;width:56px}
-#pg-ca .ca-mtbl td:first-child,#pg-ca .ca-mtbl th:first-child{text-align:left}
-#pg-ca tr.off td{color:var(--muted)}
-#pg-ca tr.off td:nth-child(2){color:var(--muted)}
-#pg-ca input[type=checkbox]{width:18px;height:18px;accent-color:var(--blue);cursor:pointer}
-#pg-ca .ca-sw{display:inline-block;width:18px;height:3px;border-radius:2px}
-#pg-ca .ca-sw.dash{height:0;border-top:2px dashed var(--muted);background:none}
-#pg-ca .ca-sw.band{height:10px;background:var(--red);opacity:.15}
-#pg-ca .ca-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--red)}
-#pg-ca .ca-ctl{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:10px 0}
-#pg-ca .ca-lbl{font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);min-width:190px}
-#pg-ca .ca-sel{font:500 13.5px var(--f-body);color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:6px 9px;max-width:100%}
-#pg-ca input.ca-sel{width:90px}
-#pg-ca .ca-val{font:500 13px var(--f-body)}
-#pg-ca .ca-chips{display:flex;flex-wrap:wrap;gap:6px}
-#pg-ca .ca-chip{font:500 12px var(--f-body);border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:999px;padding:5px 11px;cursor:pointer;text-decoration:line-through}
-#pg-ca .ca-chip[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff;text-decoration:none}
-#pg-ca .ca-cmt{width:100%;min-height:110px;box-sizing:border-box;font:400 13.5px/1.5 var(--f-body);color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px}
-#pg-ca .ca-btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
-#pg-ca .ca-btn{background:var(--panel);border:1px solid var(--line);color:var(--ink)}
-#pg-ca .ca-btn.ca-pri{background:var(--navy);border-color:var(--navy);color:#fff}
-#pg-ca .ca-msg{font-size:12.5px;color:var(--ok)}
-#pg-ca .ca-src ul{margin:0;padding-left:18px;color:var(--muted);font-size:12.5px;display:grid;gap:4px}
-#pg-ca .ca-src a{color:var(--blue)}
-#pg-ca .ca-asm{color:var(--warn);font-size:11px;margin-left:4px}
-#pg-ca .ca-pos{color:var(--ok)} #pg-ca .ca-neg{color:var(--bad)}
-#pg-ca .ca-mtbl td:not(:first-child),#pg-ca .ca-mtbl th:not(:first-child){text-align:right}
 </style></head><body>
 <header class="band">
   <div class="wrap" style="padding-block:20px 0;display:block">
@@ -178,7 +146,6 @@ footer{color:var(--muted);font-size:12px}
       <button type="button" class="tab" role="tab" id="tab-sf" aria-controls="pg-sf" aria-selected="false">Forecast</button>
       <button type="button" class="tab" role="tab" id="tab-acc" aria-controls="pg-acc" aria-selected="false">Accuracy</button>
       <button type="button" class="tab" role="tab" id="tab-inv" aria-controls="pg-inv" aria-selected="false">Inventory</button>
-      <button type="button" class="tab" role="tab" id="tab-ca" aria-controls="pg-ca" aria-selected="false">California</button>
       <button type="button" class="tab" role="tab" id="tab-set" aria-controls="pg-set" aria-selected="false">Settings</button>
     </nav>
   </div>
@@ -261,46 +228,6 @@ footer{color:var(--muted);font-size:12px}
         <thead><tr><th>SKU</th><th>Product</th><th>RDC</th><th>Current Stock</th><th>On Order</th><th>Lead Time (weeks)</th><th>Avg Monthly Demand (12 mo)</th><th>Demand Std Dev (12 mo)</th><th>Next-Month Forecast</th><th>Lead-Time Demand</th><th>Safety Stock</th><th>Reorder Point</th><th>Inventory Position</th><th>Days of Supply</th><th class="c">Status</th><th>Suggested Order Qty</th></tr></thead>
         <tbody id="invBody"></tbody>
       </table></div>
-    </section>
-  </div>
-
-  <div id="pg-ca" class="page" role="tabpanel" aria-labelledby="tab-ca" hidden>
-    <section class="panel ca-head" aria-labelledby="caH">
-      <h2 id="caH">Driver forecast · <span id="caProd"></span> · California</h2>
-      <p class="ca-note" id="caNote"></p>
-    </section>
-    <section class="kpis" aria-label="Driver forecast KPIs" id="caKpis"></section>
-    <section class="panel" aria-labelledby="caCH">
-      <h2 id="caCH">Sales and forecast · units per month</h2>
-      <div class="chart" id="caChart"></div>
-      <div class="legend"><span><i class="ca-sw" style="background:var(--blue)"></i>Actual sales</span><span><i class="ca-sw dash" style="border-color:var(--muted)"></i>Baseline (trend + season)</span><span><i class="ca-sw" style="background:var(--red)"></i>Driver forecast</span><span><i class="ca-sw band"></i>Range (80%)</span><span><i class="ca-dot"></i>Promotion</span></div>
-    </section>
-    <section class="panel" aria-labelledby="caFH">
-      <h2 id="caFH">Factors · include or exclude</h2>
-      <div class="tbl"><table class="ca-tbl ca-ftbl"><thead><tr><th>Include</th><th>Factor</th><th>Source</th><th>Lag</th><th>Data through</th><th>Effect next 12 mo</th><th>Backtest</th><th>Assessment</th></tr></thead><tbody id="caFac"></tbody></table></div>
-      <p class="ca-help">Effect = forecast minus forecast with the factor at its normal level (no promotion, no rebate, average permits). Backtest = change in error (WMAPE) on the last 12 months when the factor is added.</p>
-    </section>
-    <div class="grid2b">
-      <section class="panel" aria-labelledby="caSH">
-        <h2 id="caSH">Scenario</h2>
-        <div class="ca-ctl"><span class="ca-lbl">Planned promotions</span><span id="caPromos" class="ca-chips"></span></div>
-        <div class="ca-ctl"><label class="ca-lbl" for="caReb">Rebate program</label><select id="caReb" class="ca-sel"></select></div>
-        <div class="ca-ctl"><label class="ca-lbl" for="caSent">Consumer sentiment from Oct-26</label><input id="caSent" class="ca-sel" type="number" step="0.5" min="30" max="110"></div>
-        <div class="ca-ctl"><span class="ca-lbl">Mortgage rate (30-yr)</span><span class="ca-val" id="caMort"></span></div>
-      </section>
-      <section class="panel" aria-labelledby="caDH">
-        <h2 id="caDH"><label for="caCmt">Planner decision</label></h2>
-        <textarea id="caCmt" class="ca-cmt" placeholder="Which factors did you include and why?"></textarea>
-        <div class="ca-btns"><button type="button" class="btn ca-btn" id="caReset">Reset to recommended</button><button type="button" class="btn ca-btn ca-pri" id="caCopy">Copy forecast</button><span id="caMsg" class="ca-msg"></span></div>
-      </section>
-    </div>
-    <section class="panel" aria-labelledby="caMH">
-      <h2 id="caMH">Forecast by month</h2>
-      <div class="tbl"><table class="ca-tbl ca-mtbl"><thead id="caMHead"></thead><tbody id="caMBody"></tbody></table></div>
-    </section>
-    <section class="panel ca-src" aria-labelledby="caSrcH">
-      <h2 id="caSrcH">Sources</h2>
-      <ul id="caSrc"></ul>
     </section>
   </div>
 
@@ -532,7 +459,7 @@ function colChart(box,{labels,series,fmt,tipFmt}){
 
 /* ---------- render ---------- */
 let DATA, SET={win:3,svc:0.95,target:0.92,promoProduct:'',uplift:0,season:true,growth:0.05,tol:0.05}, RDC='All', SFP='All', SFR='All', PAGE='dash', R;
-const PAGES=['dash','sf','acc','inv','ca','set'];
+const PAGES=['dash','sf','acc','inv','set'];
 const n0=v=>v==null||!isFinite(v)?'—':nf.format(v);
 const td=(v,cls='num')=>`<td class="${cls}">${v}</td>`;
 const statusPill=(bad,b,g)=>`<span class="pill ${bad?'bad':'ok'}">${bad?b:g}</span>`;
@@ -679,141 +606,6 @@ drop.addEventListener('drop',e=>handleFile(e.dataTransfer.files[0]));
 
 load(fromSample(SAMPLE),'Sample data');
 const h=location.hash.slice(1);if(PAGES.includes(h))showTab(h);
-})();
-</script>
-<script>
-const CA_DATA={"product":"Bosch 30″ induction range","state":"California","hist":["2023-10","2023-11","2023-12","2024-01","2024-02","2024-03","2024-04","2024-05","2024-06","2024-07","2024-08","2024-09","2024-10","2024-11","2024-12","2025-01","2025-02","2025-03","2025-04","2025-05","2025-06","2025-07","2025-08","2025-09","2025-10","2025-11","2025-12","2026-01","2026-02","2026-03","2026-04","2026-05","2026-06","2026-07","2026-08","2026-09"],"sales":[509,686,486,499,643,606,553,770,522,568,630,484,597,773,525,471,543,623,618,835,572,690,654,894,701,959,654,648,828,717,727,891,730,734,686,1100],"fut":["2026-10","2026-11","2026-12","2027-01","2027-02","2027-03","2027-04","2027-05","2027-06","2027-07","2027-08","2027-09"],"promo":{"2023-11":"Black Friday","2024-02":"Presidents' Day","2024-05":"Memorial Day","2024-11":"Black Friday","2025-05":"Memorial Day","2025-09":"Labor Day","2025-11":"Black Friday","2026-02":"Presidents' Day","2026-05":"Memorial Day","2026-09":"Labor Day"},"promoPlan":{"2026-11":"Black Friday","2027-02":"Presidents' Day","2027-05":"Memorial Day","2027-09":"Labor Day"},"rebateStart":"2025-07","permits":{"2022-01":9252.0,"2022-02":10523.8,"2022-03":10949.0,"2022-04":10308.1,"2022-05":9531.9,"2022-06":10801.1,"2022-07":8152.7,"2022-08":10284.3,"2022-09":10312.0,"2022-10":7409.4,"2022-11":7831.5,"2022-12":7513.8,"2023-01":8200.8,"2023-02":9232.6,"2023-03":7592.4,"2023-04":8950.5,"2023-05":9089.2,"2023-06":11242.2,"2023-07":8823.4,"2023-08":11545.4,"2023-09":8294.3,"2023-10":8545.8,"2023-11":11117.6,"2023-12":6738.8,"2024-01":8717.3,"2024-02":8470.8,"2024-03":8335.7,"2024-04":7480.2,"2024-05":9221.0,"2024-06":7893.3,"2024-07":9182.6,"2024-08":8155.4,"2024-09":7930.7,"2024-10":8768.1,"2024-11":8626.1,"2024-12":7761.3,"2025-01":7811.0,"2025-02":7866.6,"2025-03":7739.2,"2025-04":8919.4,"2025-05":8153.2,"2025-06":8305.8,"2025-07":7974.9,"2025-08":8220.9,"2025-09":9445.0,"2025-10":8987.4,"2025-11":8769.8,"2025-12":9748.5,"2026-01":9525.6,"2026-02":12163.4,"2026-03":9149.7,"2026-04":8832.0,"2026-05":8913.7,"2026-06":8622.2,"2026-07":8789.0,"2026-08":9087.0},"sentiment":{"2022-01":67.2,"2022-02":62.8,"2022-03":59.4,"2022-04":65.2,"2022-05":58.4,"2022-06":50.0,"2022-07":51.5,"2022-08":58.2,"2022-09":58.6,"2022-10":59.9,"2022-11":56.7,"2022-12":59.8,"2023-01":64.9,"2023-02":66.9,"2023-03":62.0,"2023-04":63.7,"2023-05":59.0,"2023-06":64.2,"2023-07":71.5,"2023-08":69.4,"2023-09":67.8,"2023-10":63.8,"2023-11":61.3,"2023-12":69.7,"2024-01":79.0,"2024-02":76.9,"2024-03":79.4,"2024-04":77.2,"2024-05":69.1,"2024-06":68.2,"2024-07":66.4,"2024-08":67.9,"2024-09":70.1,"2024-10":70.5,"2024-11":71.8,"2024-12":74.0,"2025-01":71.7,"2025-02":64.7,"2025-03":57.0,"2025-04":52.2,"2025-05":52.2,"2025-06":60.7,"2025-07":61.7,"2025-08":58.2,"2025-09":55.1,"2025-10":53.6,"2025-11":51.0,"2025-12":52.9,"2026-01":56.4,"2026-02":56.6,"2026-03":53.3,"2026-04":49.8,"2026-05":44.8,"2026-06":49.5,"2026-07":55.2,"2026-08":51.7,"2026-09":48.1},"unemp":{"2022-01":1200300,"2022-02":1200300,"2022-03":1200300,"2022-04":1001300,"2022-05":1001300,"2022-06":1001300,"2022-07":861000,"2022-08":861000,"2022-09":861000,"2022-10":801600,"2022-11":801600,"2022-12":801600,"2023-01":804600,"2023-02":804600,"2023-03":804600,"2023-04":831400,"2023-05":831400,"2023-06":831400,"2023-07":859800,"2023-08":859800,"2023-09":859800,"2023-10":904500,"2023-11":904500,"2023-12":904500,"2024-01":931700,"2024-02":931700,"2024-03":931700,"2024-04":945400,"2024-05":945400,"2024-06":945400,"2024-07":995000,"2024-08":995000,"2024-09":995000,"2024-10":1013600,"2024-11":1013600,"2024-12":1013600,"2025-01":1012900,"2025-02":1012900,"2025-03":1012900,"2025-04":1050000,"2025-05":1050000,"2025-06":1050000,"2025-07":1050600,"2025-08":1050600,"2025-09":1050600,"2025-10":1048500,"2025-11":1048500,"2025-12":1048500,"2026-01":1046000,"2026-02":1046000,"2026-03":1046000,"2026-04":1017600,"2026-05":1017600,"2026-06":1017600,"2026-07":1000700,"2026-08":1000700,"2026-09":1000700},"asOf":{"permits":"2026-08","sentiment":"2026-09","unemp":"2026-07"},"pulled":"2026-10-25"};
-</script>
-<script>
-(function(root){
-const addm=(k,n)=>{let y=+k.slice(0,4),m=+k.slice(5,7)+n;y+=Math.floor((m-1)/12);m=((m-1)%12+12)%12+1;return y+'-'+String(m).padStart(2,'0');};
-const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
-const FACTORS=[
- {id:'promo',sign:1,name:'Promotions',src:'Internal promotion calendar',srcUrl:null,lag:0,type:'event'},
- {id:'rebate',sign:1,name:'Induction rebate program',src:'Planner input (state rebate program)',srcUrl:null,lag:0,type:'event'},
- {id:'permits',sign:1,name:'Housing permits, California',src:'U.S. Census Bureau via FRED (CABPPRIVSA)',srcUrl:'https://fred.stlouisfed.org/series/CABPPRIVSA',lag:9,type:'index'},
- {id:'sent',sign:1,name:'Consumer sentiment',src:'University of Michigan via FRED (UMCSENT)',srcUrl:'https://fred.stlouisfed.org/series/UMCSENT',lag:1,type:'index'},
- {id:'unemp',sign:-1,name:'Unemployment, California',src:'BLS via FRED (UNEMPLOYCA, 4-quarter avg.)',srcUrl:'https://fred.stlouisfed.org/data/UNEMPLOYCA',lag:0,type:'index'}];
-function solve(A,b){const n=b.length,M=A.map((r,i)=>[...r,b[i]]);
-  for(let c=0;c<n;c++){let p=c;for(let r=c+1;r<n;r++)if(Math.abs(M[r][c])>Math.abs(M[p][c]))p=r;[M[c],M[p]]=[M[p],M[c]];
-    const d=M[c][c]||1e-12;for(let k=c;k<=n;k++)M[c][k]/=d;for(let r=0;r<n;r++)if(r!==c){const f=M[r][c];if(f)for(let k=c;k<=n;k++)M[r][k]-=f*M[c][k];}}
-  return M.map(r=>r[n]);}
-function ols(X,y,lam=0.05){const p=X[0].length,A=Array.from({length:p},()=>new Array(p).fill(0)),b=new Array(p).fill(0);
-  X.forEach((r,i)=>{for(let a=0;a<p;a++){b[a]+=r[a]*y[i];for(let c=0;c<p;c++)A[a][c]+=r[a]*r[c];}});
-  for(let a=1;a<p;a++)A[a][a]+=lam;return solve(A,b);}
-function build(D,sc){
-  const pm=mean(Object.values(D.permits)),sm=mean(Object.values(D.sentiment)),um=mean(Object.values(D.unemp).filter(x=>x!=null));
-  const last=(o,k)=>{const ks=Object.keys(o).filter(x=>x<=k&&o[x]!=null).sort();return ks.length?o[ks[ks.length-1]]:null;};
-  const assumed={};
-  const val=(id,m,isFut)=>{
-    if(id==='promo')return isFut?(sc.promos[m]?1:0):(D.promo[m]?1:0);
-    if(id==='rebate'){if(m<D.rebateStart)return 0;if(isFut&&sc.rebateEnd&&m>sc.rebateEnd)return 0;return 1;}
-    if(id==='permits'){const k=addm(m,-9);let v=D.permits[k];if(v==null){v=last(D.permits,k);(assumed[m]=assumed[m]||new Set()).add('permits');}return Math.log(v/pm);}
-    if(id==='sent'){const k=addm(m,-1);let v=D.sentiment[k];if(v==null){v=sc.sentiment;(assumed[m]=assumed[m]||new Set()).add('sent');}return Math.log(v/sm);}
-    if(id==='unemp'){let v=D.unemp[m];if(v==null){v=last(D.unemp,m);(assumed[m]=assumed[m]||new Set()).add('unemp');}return Math.log(v/um);}};
-  const row=(m,t,ids,isFut)=>{const r=[1,t/12];for(let k=2;k<=12;k++)r.push(+m.slice(5,7)===k?1:0);ids.forEach(id=>r.push(val(id,m,isFut)));return r;};
-  return {row,val,assumed};}
-function model(D,ids,sc,trainN){
-  const B=build(D,sc),H=D.hist,n=trainN||H.length,X=[],y=[];
-  for(let i=0;i<n;i++){X.push(B.row(H[i],i,ids,false));y.push(Math.log(D.sales[i]));}
-  const w=ols(X,y),pred=r=>Math.exp(r.reduce((s,x,j)=>s+x*w[j],0));
-  const res=X.map((r,i)=>y[i]-r.reduce((s,x,j)=>s+x*w[j],0)),sd=Math.sqrt(res.reduce((s,x)=>s+x*x,0)/Math.max(1,n-X[0].length));
-  return {w,pred,B,sd,
-    fit:H.map((m,i)=>pred(B.row(m,i,ids,false))),
-    fc:D.fut.map((m,h)=>pred(B.row(m,H.length+h,ids,true)))};}
-function wmape(D,ids,sc){const n=D.hist.length,tr=n-12,M=model(D,ids,sc,tr);let e=0,a=0;
-  for(let i=tr;i<n;i++){const f=M.pred(M.B.row(D.hist[i],i,ids,false));e+=Math.abs(f-D.sales[i]);a+=D.sales[i];}return e/a;}
-function run(D,sel,sc){
-  const ids=FACTORS.map(f=>f.id).filter(id=>sel[id]);
-  const base=model(D,[],sc),full=model(D,ids,sc);
-  const sum=a=>a.reduce((x,y)=>x+y,0);
-  const z=1.28,band=full.fc.map(v=>[v*Math.exp(-z*full.sd),v*Math.exp(z*full.sd)]);
-  const wSel=wmape(D,ids,sc),wBase=wmape(D,[],sc);
-  const contribOf=(M,idList,id)=>{const j=13+idList.indexOf(id);return D.fut.map((m,h)=>{const r=M.B.row(m,D.hist.length+h,idList,true),lin=r.reduce((s,x,k)=>s+x*M.w[k],0);return Math.exp(lin)-Math.exp(lin-r[j]*M.w[j]);});};
-  const factors=FACTORS.map(f=>{const on=!!sel[f.id],withIds=on?ids:[...ids,f.id],withoutIds=ids.filter(x=>x!==f.id);
-    const mW=on?full:model(D,withIds,sc),effMonths=contribOf(mW,withIds,f.id),eff=sum(effMonths);
-    const gain=wmape(D,withoutIds,sc)-wmape(D,withIds,sc),coef=mW.w[13+withIds.indexOf(f.id)];
-    return {...f,on,eff,effPct:eff/sum(mW.fc),effMonths,gain,coef,wrongSign:coef*f.sign<0,rec:coef*f.sign<0?'Unexpected direction':gain>0.003?'Recommended':gain>-0.001?'Small effect':'Not helpful',
-      asOf:D.asOf[f.id==='sent'?'sentiment':f.id]||null};});
-  // per-month contribution of included factors (leave-one-out)
-  const contrib={};factors.filter(f=>f.on).forEach(f=>contrib[f.id]=f.effMonths);
-  return {base:base.fc,fc:full.fc,fit:full.fit,band,wSel,wBase,factors,contrib,assumed:full.B.assumed,sd:full.sd};}
-const API={run,FACTORS,addm};
-if(typeof module!=='undefined')module.exports=API;else root.CAE=API;
-})(this);
-</script>
-<script>
-(function(){
-const $=id=>document.getElementById(id);if(!$('pg-ca')||!window.CAE)return;
-const D=CA_DATA,E=CAE,nf=new Intl.NumberFormat('en-US',{maximumFractionDigits:0});
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],ml=k=>MON[+k.slice(5,7)-1]+'-'+k.slice(2,4);
-const sum=a=>a.reduce((x,y)=>x+y,0),sgn=v=>(v>0?'+':v<0?'−':'')+nf.format(Math.abs(Math.round(v)));
-const spct=x=>(x>0.0005?'+':x<-0.0005?'−':'')+(Math.abs(x)*100).toFixed(1)+'%',pts=x=>(x>0.00005?'−':x<-0.00005?'+':'')+(Math.abs(x)*100).toFixed(1)+' pt';
-const REC=['promo','rebate','permits'];
-const SC={promos:Object.fromEntries(Object.keys(D.promoPlan).map(k=>[k,true])),rebateEnd:null,sentiment:D.sentiment[D.asOf.sentiment]};
-let SEL=Object.fromEntries(REC.map(k=>[k,true])),R;
-function render(){
-  R=E.run(D,SEL,SC);
-  $('caProd').textContent=D.product;
-  $('caNote').innerHTML=`Sales history ${ml(D.hist[0])} – ${ml(D.hist[D.hist.length-1])} is sample data. Factor data from FRED, pulled ${new Date(D.pulled+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}. Forecast ${ml(D.fut[0])} – ${ml(D.fut[11])}.`;
-  const b=sum(R.base),f=sum(R.fc),on=R.factors.filter(x=>x.on).length;
-  $('caKpis').innerHTML=[['Driver forecast · 12 mo',nf.format(f),`${spct(f/b-1)} vs. baseline`],['Baseline · 12 mo',nf.format(b),'Trend + season only'],
-    ['Backtest error (WMAPE)',(R.wSel*100).toFixed(1)+'%',`Baseline ${(R.wBase*100).toFixed(1)}% · last 12 months`],['Factors included',`${on} of ${R.factors.length}`,on?R.factors.filter(x=>x.on).map(x=>x.name.split(',')[0]).join(', '):'None']]
-    .map(([k,v,d])=>`<div class="kpi"><span class="k">${k}</span><span class="v">${v}</span><span class="d">${esc(d)}</span></div>`).join('');
-  $('caFac').innerHTML=R.factors.map(x=>{const pill=x.rec==='Recommended'?'ok':x.rec==='Unexpected direction'?'bad':'warn';
-    const src=x.srcUrl?`<a href="${x.srcUrl}" target="_blank" rel="noopener">${esc(x.src)}</a>`:esc(x.src);
-    return `<tr class="${x.on?'':'off'}"><td><input type="checkbox" data-f="${x.id}" ${x.on?'checked':''} aria-label="Include ${esc(x.name)}"></td><td>${esc(x.name)}</td><td>${src}</td><td>${x.lag?x.lag+' mo':'—'}</td><td>${x.asOf?ml(x.asOf):'—'}</td>
-      <td class="${x.eff>=0?'ca-pos':'ca-neg'}">${sgn(x.eff)} <small>(${spct(x.effPct)})</small></td><td>${Math.abs(x.gain)<0.0005?'No change':'Error '+pts(x.gain)}</td><td><span class="pill ${pill}">${x.rec}</span></td></tr>`;}).join('');
-  $('caPromos').innerHTML=Object.entries(D.promoPlan).map(([m,n])=>`<button type="button" class="ca-chip" data-p="${m}" aria-pressed="${!!SC.promos[m]}">${esc(n)} ${ml(m)}</button>`).join('');
-  const ends=[null,'2026-12','2027-03','2027-06'];$('caReb').innerHTML=ends.map(e=>`<option value="${e||''}"${(SC.rebateEnd||null)===e?' selected':''}>${e?'Ends after '+ml(e):'Continues'}</option>`).join('');
-  if(document.activeElement!==$('caSent'))$('caSent').value=SC.sentiment;
-  $('caMort').innerHTML=`7.32% (week of Oct 22, 2026) · <span style="color:var(--muted)">history not loaded, not used in the model</span>`;
-  const ons=R.factors.filter(x=>x.on);
-  $('caMHead').innerHTML=`<tr><th>Month</th><th>Baseline</th>${ons.map(x=>`<th>${esc(x.name.split(',')[0])}</th>`).join('')}<th>Driver forecast</th><th>Range (80%)</th></tr>`;
-  $('caMBody').innerHTML=D.fut.map((m,h)=>{const asm=R.assumed[m]?[...R.assumed[m]].filter(id=>SEL[id]):[];
-    return `<tr><td>${ml(m)}${SC.promos[m]?' <span class="pill warn">'+esc(D.promoPlan[m])+'</span>':''}${asm.length?'<span class="ca-asm" title="Factor value assumed (latest data held)">assumed</span>':''}</td><td>${nf.format(R.base[h])}</td>${ons.map(x=>`<td>${Math.abs(R.contrib[x.id][h])<0.5?'–':sgn(R.contrib[x.id][h])}</td>`).join('')}<td><b>${nf.format(R.fc[h])}</b></td><td>${nf.format(R.band[h][0])} – ${nf.format(R.band[h][1])}</td></tr>`;}).join('')+
-    `<tr class="tot"><td>Total</td><td>${nf.format(b)}</td>${ons.map(x=>`<td>${sgn(sum(R.contrib[x.id]))}</td>`).join('')}<td><b>${nf.format(f)}</b></td><td>${nf.format(sum(R.band.map(x=>x[0])))} – ${nf.format(sum(R.band.map(x=>x[1])))}</td></tr>`;
-  $('caSrc').innerHTML=[['https://fred.stlouisfed.org/series/CABPPRIVSA','New Private Housing Units Authorized by Building Permits for California (CABPPRIVSA), U.S. Census Bureau via FRED, monthly, seasonally adjusted'],
-    ['https://fred.stlouisfed.org/series/UMCSENT','University of Michigan: Consumer Sentiment (UMCSENT) via FRED, monthly'],
-    ['https://fred.stlouisfed.org/data/UNEMPLOYCA','Unemployment Level for California (UNEMPLOYCA), BLS via FRED, 4-quarter moving average'],
-    ['https://fred.stlouisfed.org/series/MORTGAGE30US','30-Year Fixed Rate Mortgage Average (MORTGAGE30US), Freddie Mac via FRED, weekly']]
-    .map(([u,t])=>`<li><a href="${u}" target="_blank" rel="noopener">${esc(t)}</a></li>`).join('')+'<li>Sales history, promotion calendar and rebate program: sample data for the demo.</li>';
-  draw();
-}
-function draw(){if($('pg-ca').hidden)return;const box=$('caChart');
-  const H=D.hist.slice(-24),A=D.sales.slice(-24),X=[...H,...D.fut],n=H.length;
-  const W=Math.max(300,box.clientWidth||700),Ht=Math.round(Math.min(320,Math.max(220,W*0.36))),L=46,RM=12,T=22,B=28;
-  const hi=Math.max(...A,...R.band.map(x=>x[1]))*1.08,x=i=>L+i*(W-L-RM)/(X.length-1),y=v=>T+(1-v/hi)*(Ht-T-B);
-  const step=hi>1500?500:hi>800?200:100;let g=`<text x="4" y="12" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">Units</text>`;
-  for(let v=0;v<=hi;v+=step)g+=`<line x1="${L}" x2="${W-RM}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">${nf.format(v)}</text>`;
-  const xs=x(n-0.5);g+=`<line x1="${xs}" x2="${xs}" y1="${T-6}" y2="${Ht-B}" stroke="var(--muted)" stroke-dasharray="2 3"/><text x="${xs+5}" y="${T-8}" font-size="10.5" fill="var(--muted)" font-family="var(--f-mono)">Forecast →</text>`;
-  const bandPts=R.band.map((b,h)=>[x(n+h),y(b[1])]).concat(R.band.map((b,h)=>[x(n+h),y(b[0])]).reverse());
-  g+=`<path d="M${bandPts.map(p=>p.join(',')).join(' L')} Z" fill="var(--red)" opacity=".12"/>`;
-  g+=`<polyline points="${A.map((v,i)=>x(i)+','+y(v)).join(' ')}" fill="none" stroke="var(--blue)" stroke-width="2.4" stroke-linejoin="round"/>`;
-  g+=`<polyline points="${[[x(n-1),y(A[n-1])],...R.base.map((v,h)=>[x(n+h),y(v)])].map(p=>p.join(',')).join(' ')}" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6 5"/>`;
-  g+=`<polyline points="${[[x(n-1),y(A[n-1])],...R.fc.map((v,h)=>[x(n+h),y(v)])].map(p=>p.join(',')).join(' ')}" fill="none" stroke="var(--red)" stroke-width="2.6" stroke-linejoin="round"/>`;
-  H.forEach((m,i)=>{if(D.promo[m])g+=`<circle cx="${x(i)}" cy="${y(A[i])}" r="4.5" fill="var(--red)" stroke="var(--panel)" stroke-width="1.5"/>`;});
-  D.fut.forEach((m,h)=>{if(SC.promos[m])g+=`<circle cx="${x(n+h)}" cy="${y(R.fc[h])}" r="4.5" fill="var(--red)" stroke="var(--panel)" stroke-width="1.5"/>`;});
-  const every=W<560?6:3;X.forEach((m,i)=>{if(i%every===0||(i===X.length-1&&i%every>=every*0.6))g+=`<text x="${x(i)}" y="${Ht-8}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">${ml(m)}</text>`;});
-  box.innerHTML=`<svg viewBox="0 0 ${W} ${Ht}" width="100%" role="img" aria-label="Actual sales and driver forecast">${g}</svg><div class="tip" hidden></div>`;
-  const svg=box.querySelector('svg'),tip=box.querySelector('.tip');
-  svg.addEventListener('pointermove',e=>{const r=svg.getBoundingClientRect(),sx=(e.clientX-r.left)*W/r.width;let i=Math.round((sx-L)/((W-L-RM)/(X.length-1)));i=Math.max(0,Math.min(X.length-1,i));
-    const m=X[i];tip.innerHTML=i<n?`${ml(m)}${D.promo[m]?' · '+esc(D.promo[m]):''}<br>Actual <b>${nf.format(A[i])}</b>`:`${ml(m)}${SC.promos[m]?' · '+esc(D.promoPlan[m]):''}<br>Driver forecast <b>${nf.format(R.fc[i-n])}</b><br>Baseline <b>${nf.format(R.base[i-n])}</b><br>Range <b>${nf.format(R.band[i-n][0])} – ${nf.format(R.band[i-n][1])}</b>`;
-    tip.hidden=false;const px=x(i)*r.width/W;tip.style.left=Math.min(Math.max(px,70),box.clientWidth-70)+'px';tip.style.top=(e.clientY-r.top)+'px';});
-  svg.addEventListener('pointerleave',()=>tip.hidden=true);
-}
-$('caFac').addEventListener('change',e=>{const c=e.target.closest('[data-f]');if(!c)return;SEL[c.dataset.f]=c.checked;render();});
-$('caPromos').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(!b)return;SC.promos[b.dataset.p]=!SC.promos[b.dataset.p];render();});
-$('caReb').addEventListener('change',e=>{SC.rebateEnd=e.target.value||null;render();});
-$('caSent').addEventListener('change',e=>{const v=+e.target.value;if(isFinite(v)&&v>20&&v<130){SC.sentiment=v;render();}});
-$('caReset').addEventListener('click',()=>{SEL=Object.fromEntries(REC.map(k=>[k,true]));SC.promos=Object.fromEntries(Object.keys(D.promoPlan).map(k=>[k,true]));SC.rebateEnd=null;SC.sentiment=D.sentiment[D.asOf.sentiment];$('caSent').value=SC.sentiment;render();});
-$('caCopy').addEventListener('click',()=>{const t='Month\tBaseline\tDriver forecast\tLow\tHigh\n'+D.fut.map((m,h)=>[ml(m),Math.round(R.base[h]),Math.round(R.fc[h]),Math.round(R.band[h][0]),Math.round(R.band[h][1])].join('\t')).join('\n');
-  const ok=()=>{$('caMsg').textContent='Copied — paste into Excel';setTimeout(()=>$('caMsg').textContent='',2500);};
-  try{navigator.clipboard.writeText(t).then(ok,()=>{$('caMsg').textContent='Copy not allowed in this browser';});}catch(err){$('caMsg').textContent='Copy not allowed in this browser';}});
-const tab=$('tab-ca');if(tab)tab.addEventListener('click',()=>setTimeout(draw,0));
-let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(draw,150);});
-render();
 })();
 </script>
 </body></html>
