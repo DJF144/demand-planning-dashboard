@@ -167,6 +167,7 @@ tr.hl td{background:color-mix(in srgb,var(--bad-bg) 55%,transparent)}
 .tbl.tall{max-height:640px;overflow:auto}
 .filters .flabel{font:500 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);align-self:flex-start;line-height:27px;flex:0 0 84px;width:84px}
 .fgrp{display:flex;flex-wrap:wrap;gap:8px;flex:1;min-width:0}
+.sfkpi[hidden]{display:none}
 .sfkpi{display:inline-grid;gap:2px;padding:10px 14px;margin-bottom:12px;border:1px solid var(--line);border-radius:8px;background:var(--soft)}
 .sfkpi .k{font:500 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .sfkpi .v{font:800 24px/1.1 var(--f-display);font-variant-numeric:tabular-nums}
@@ -303,8 +304,8 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
   <!-- 03 Forecast -->
   <div id="pg-sf" class="page" role="tabpanel" aria-labelledby="tab-sf" hidden>
     <section class="panel" aria-labelledby="sfH">
-      <h2 id="sfH">Forecast detail</h2>
-      <div class="sfkpi"><span class="k" id="sfKpiK">Selection · last 12 months</span><span class="v" id="sfKpi">—</span><span class="d" id="sfKpiD">—</span></div>
+      <h2 id="sfH" hidden>Forecast detail</h2>
+      <div class="sfkpi" hidden><span class="k" id="sfKpiK">Selection · last 12 months</span><span class="v" id="sfKpi">—</span><span class="d" id="sfKpiD">—</span></div>
       <div class="filters"><span class="flabel">Period</span><select class="sel" id="sfPer" aria-label="Period"></select></div>
       <div class="filters"><span class="flabel">Category</span><span id="sfCat" class="fgrp" role="group" aria-label="Filter by category"></span></div>
       <div class="filters"><span class="flabel">Product</span><span id="sfProd" class="fgrp" role="group" aria-label="Filter by product"></span></div>
