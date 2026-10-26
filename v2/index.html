@@ -339,7 +339,7 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
       <div class="kpis" id="lbKpis" style="margin-bottom:14px"></div>
       <div class="grid2b" style="margin:0">
         <div class="tbl compact"><table><thead><tr><th>Category</th><th>Actual</th><th>Consensus</th><th>Error</th><th>Bias</th><th>FVA</th></tr></thead><tbody id="lbCat"></tbody></table></div>
-        <div class="tbl compact"><table><thead><tr><th class="c">Seg.</th><th id="lbMissH">Largest misses</th><th>Actual</th><th>Consensus</th><th>Error</th><th>Error %</th><th class="c" id="lbDirH" hidden>By month</th></tr></thead><tbody id="lbMiss"></tbody></table></div>
+        <div class="tbl compact"><table><thead><tr><th class="c">Seg.</th><th id="lbMissH">Largest misses</th><th>Actual</th><th>Consensus</th><th>Error</th><th>Error %</th></tr></thead><tbody id="lbMiss"></tbody></table></div>
       </div>
     </section>
     <section class="panel" aria-labelledby="planH">
@@ -991,13 +991,13 @@ function renderReview(){
   const ytdK=Math.min(12,+R.months[R.last].slice(5,7)),isY=UI.revK==='ytd',K=isY?ytdK:UI.revK,L=R.reviews[K],T=L.total,hasC=T.consW!=null;
   $('lbH').textContent=isY?`Year to date review · ${mLabel(L.from)} – ${mLabel(L.to)}`:K===1?'Last month review · '+mLabel(L.to):`Last ${K} months review · ${mLabel(L.from)} – ${mLabel(L.to)}`;
   $('revBack').innerHTML=[1,3,6,12].map(k=>`<option value="${k}"${!isY&&k===K?' selected':''}>${k===1?'Last month':'Last '+k+' months'}</option>`).join('')+`<option value="ytd"${isY?' selected':''}>Year to date</option>`;
-  $('lbMissH').textContent=K===1?'Largest misses':'Largest misses';$('lbDirH').hidden=K===1;$('lbDirH').textContent=K<=6?'By month':'Months';
+  $('lbMissH').textContent=K===1?'Largest misses':'Largest misses';
   $('lbKpis').innerHTML=hasC?kpiCard('Consensus accuracy',pct(1-T.consW),`WMAPE ${pct(T.consW)} · statistical ${pct(1-T.statW)}`)+kpiCard('Consensus bias',spct(T.consBias),biasD(T.consBias))+kpiCard('FVA',pts(T.fva),fvaD(T.fva))
     :kpiCard('Statistical accuracy',pct(1-T.statW),`WMAPE ${pct(T.statW)}`)+kpiCard('Consensus accuracy','—','Needs consensus history');
   const fv=x=>x==null?td('—'):`<td class="num" style="color:${x>=0?'var(--ok)':'var(--bad)'}">${pts(x)}</td>`;
   const row=(n,c,cls='')=>`<tr class="${cls}"><td>${esc(n)}</td>${td(n0(c.a))}${td(c.c==null?n0(c.f):n0(c.c))}${td(pct(c.consW??c.statW))}${td(c.consBias==null?'—':spct(c.consBias))}${fv(c.fva)}</tr>`;
   $('lbCat').innerHTML=L.byCat.map(c=>row(c.name,c)).join('')+row('Total',T,'tot');
-  $('lbMiss').innerHTML=L.misses.slice(0,5).map(m=>`<tr><td class="c">${segTag(m.seg)}</td><td style="white-space:normal">${esc(m.product)}${m.promo?' <span class="pill warn">Promo</span>':''}</td>${td(n0(m.a))}${td(n0(m.c))}${td(sgn(Math.round(m.err)))}${td(spct(m.pct))}${K>1?(K<=6?`<td class="c" title="Over (+) or under (−) forecast per month" style="font-family:var(--f-mono);letter-spacing:.1em">${m.dir.join('')}</td>`:`<td class="c">${(()=>{const hi=m.dir.filter(x=>x==='+').length,lo=m.dir.filter(x=>x==='−').length;return hi>=lo?`${hi} of ${m.dir.length} high`:`${lo} of ${m.dir.length} low`;})()}</td>`):''}</tr>`).join('');
+  $('lbMiss').innerHTML=L.misses.slice(0,5).map(m=>`<tr><td class="c">${segTag(m.seg)}</td><td style="white-space:normal">${esc(m.product)}${m.promo?' <span class="pill warn">Promo</span>':''}</td>${td(n0(m.a))}${td(n0(m.c))}${td(sgn(Math.round(m.err)))}${td(spct(m.pct))}</tr>`).join('');
   if(!R.hasPrev){$('chgBody').innerHTML='<tr><td colspan="5" style="text-align:left">Add a "Previous Plan" sheet to compare with last month\'s plan.</td></tr>';return;}
   const C=changes(win()[0],win()[1]);UI._wf=C.tot;
   $('chgBody').innerHTML=C.prods.slice(0,6).map(p=>`<tr><td style="white-space:normal">${esc(p.product)}</td>${td(n0(p.pc))}${td(n0(p.c))}<td class="num" style="color:${p.d>=0?'var(--ok)':'var(--bad)'}">${sgn(Math.round(p.d))}<br><small>${spct(p.dp)}</small></td><td style="text-align:left;white-space:normal;line-height:1.35"><b>${esc(DRVS[p.key])}</b><br><small style="color:var(--muted)">${esc(p.note)}</small></td></tr>`).join('');
