@@ -325,7 +325,7 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
     <section class="panel" aria-labelledby="exH">
       <h2 id="exH">Exceptions</h2>
       <div class="filters" id="exTypes" role="group" aria-label="Filter by alert type"></div>
-      <div class="tbl"><table><thead><tr><th class="c">Segment</th><th>Product</th><th>RDC</th><th>Category</th><th>Alert</th><th>Value</th><th style="text-align:left">Note</th><th class="c">Action</th></tr></thead><tbody id="exBody"></tbody></table></div>
+      <div class="tbl"><table><thead><tr><th class="c">Segment</th><th>Product</th><th>RDC</th><th>Category</th><th>Alert</th><th>Value</th><th style="text-align:left">Note</th></tr></thead><tbody id="exBody"></tbody></table></div>
     </section>
   </div>
 
@@ -629,9 +629,9 @@ function compute(data,set,inputs){
     const base={sku:s.sku,product:s.product,category:s.category,rdc:s.rdc,seg:sg};
     if(s.newProduct)ex.push({...base,type:'New product',value:(n-s.launch)+' months history',sev:2,note:'Use a reference product; check launch plan with Product Management'});
     else{
-      if(m.mape>set.tolMape)ex.push({...base,type:'MAPE',value:m.mape,fmt:'pct',sev:m.mape/set.tolMape,note:'Error above threshold, last 12 months'});
-      if(Math.abs(m.bias)>set.tolBias)ex.push({...base,type:'Bias',value:m.bias,fmt:'spct',sev:Math.abs(m.bias)/set.tolBias,note:m.bias>0?'Forecast systematically too high':'Forecast systematically too low'});
-      const ly=s.u[n-12],nx=s.plan[0].stat;if(ly>0){const ch=(nx-ly)/ly;if(Math.abs(ch)>set.tolChange)ex.push({...base,type:'Change vs. last year',value:ch,fmt:'spct',sev:Math.abs(ch)/set.tolChange,note:'Next-month forecast vs. same month last year'});}
+      if(m.mape>set.tolMape)ex.push({...base,type:'MAPE',value:m.mape,fmt:'pct',sev:m.mape/set.tolMape,note:`MAPE above ${Math.round(set.tolMape*100)}% threshold · last 12 months`});
+      if(Math.abs(m.bias)>set.tolBias)ex.push({...base,type:'Bias',value:m.bias,fmt:'spct',sev:Math.abs(m.bias)/set.tolBias,note:`Bias outside ±${Math.round(set.tolBias*100)}% threshold · forecast ${m.bias>0?'too high':'too low'}`});
+      const ly=s.u[n-12],nx=s.plan[0].stat;if(ly>0){const ch=(nx-ly)/ly;if(Math.abs(ch)>set.tolChange)ex.push({...base,type:'Change vs. last year',value:ch,fmt:'spct',sev:Math.abs(ch)/set.tolChange,note:`Above ±${Math.round(set.tolChange*100)}% threshold · next-month forecast vs. same month last year`});}
     }}
   for(const r of inv.filter(r=>r.reorder))ex.push({sku:r.sku,product:r.product,category:r.category,rdc:r.rdc,seg:r.seg,type:'Reorder',value:Math.round(r.dos)+' days of supply',sev:1.5,note:'Position at or below reorder point'});
   const abcRank={A:0,B:1,C:2};ex.sort((a,b)=>(abcRank[a.seg[0]]??3)-(abcRank[b.seg[0]]??3)||b.sev-a.sev);
@@ -890,7 +890,7 @@ function renderEx(){
   chips($('exTypes'),types,UI.exType,'t',t=>`${t} (${cnt(t)})`);
   const list=R.ex.filter(e=>UI.exType==='All'||e.type===UI.exType);
   const val=e=>e.fmt==='pct'?pct(e.value):e.fmt==='spct'?spct(e.value):esc(e.value);
-  $('exBody').innerHTML=list.length?list.map((e,i)=>`<tr><td class="c">${segTag(e.seg)}</td><td>${esc(e.product)}</td><td style="text-align:left">${esc(e.rdc)}</td><td style="text-align:left">${esc(e.category)}</td><td style="text-align:left">${pill(e.type==='Reorder'?'bad':e.type==='New product'?'ok':'warn',esc(e.type))}</td>${td(val(e))}<td style="text-align:left;white-space:normal;min-width:220px">${esc(e.note)}</td><td class="c"><button type="button" class="linkbtn" data-open="${i}">${e.type==='Reorder'?'Open inventory':'Open planning view'}</button></td></tr>`).join(''):'<tr><td colspan="8" style="text-align:left">No exceptions.</td></tr>';
+  $('exBody').innerHTML=list.length?list.map((e,i)=>`<tr><td class="c">${segTag(e.seg)}</td><td>${esc(e.product)}</td><td style="text-align:left">${esc(e.rdc)}</td><td style="text-align:left">${esc(e.category)}</td><td style="text-align:left">${pill(e.type==='Reorder'?'bad':e.type==='New product'?'ok':'warn',esc(e.type))}</td>${td(val(e))}<td style="text-align:left;white-space:normal;min-width:220px">${esc(e.note)}</td></tr>`).join(''):'<tr><td colspan="7" style="text-align:left">No exceptions.</td></tr>';
   $('exBody').onclick=ev=>{const b=ev.target.closest('[data-open]');if(!b)return;const e=list[+b.dataset.open];
     if(e.type==='Reorder'){UI.invRdc=e.rdc;renderInv();showTab('inv');}else{UI.pvProd='sku:'+e.sku;UI.pvRdc=e.rdc;renderCons();showTab('cons');$('pvH').scrollIntoView({block:'start'});}};
 }
