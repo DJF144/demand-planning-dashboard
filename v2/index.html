@@ -1061,6 +1061,7 @@ $('filters').addEventListener('click',e=>{const b=e.target.closest('[data-rdc]')
 const PAGES=['dash','sf','acc','ex','inv','cons','data','set'];
 function showTab(t){PAGE=t;try{history.replaceState(null,'',t==='dash'?location.pathname+location.search:'#'+t);}catch(e){}PAGES.forEach(p=>{$('pg-'+p).hidden=p!==t;$('tab-'+p).setAttribute('aria-selected',p===t);});draw();}
 PAGES.forEach(p=>$('tab-'+p).addEventListener('click',()=>showTab(p)));
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1)||'dash';if(PAGES.includes(h)&&h!==PAGE)showTab(h);});
 const num=(id,f)=>$(id).addEventListener('change',e=>{const v=+e.target.value;if(isFinite(v)&&v>0){f(v);render();}});
 $('model').addEventListener('change',e=>{SET.model=e.target.value;render();});
 $('win').addEventListener('change',e=>{SET.win=+e.target.value;render();});
