@@ -1059,7 +1059,7 @@ $('sfRdc').addEventListener('click',e=>{const b=e.target.closest('[data-r]');if(
 $('exTypes').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;UI.exType=b.dataset.t;renderEx();});
 $('filters').addEventListener('click',e=>{const b=e.target.closest('[data-rdc]');if(!b)return;UI.invRdc=b.dataset.rdc;renderInv();});
 const PAGES=['dash','sf','acc','ex','inv','cons','data','set'];
-function showTab(t){PAGE=t;PAGES.forEach(p=>{$('pg-'+p).hidden=p!==t;$('tab-'+p).setAttribute('aria-selected',p===t);});draw();}
+function showTab(t){PAGE=t;try{history.replaceState(null,'',t==='dash'?location.pathname+location.search:'#'+t);}catch(e){}PAGES.forEach(p=>{$('pg-'+p).hidden=p!==t;$('tab-'+p).setAttribute('aria-selected',p===t);});draw();}
 PAGES.forEach(p=>$('tab-'+p).addEventListener('click',()=>showTab(p)));
 const num=(id,f)=>$(id).addEventListener('change',e=>{const v=+e.target.value;if(isFinite(v)&&v>0){f(v);render();}});
 $('model').addEventListener('change',e=>{SET.model=e.target.value;render();});
