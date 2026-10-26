@@ -321,7 +321,7 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
       <div class="filters"><span class="flabel">Category</span><span id="sfCat" class="fgrp" role="group" aria-label="Filter by category"></span></div>
       <div class="filters"><span class="flabel">Product</span><span id="sfProd" class="fgrp" role="group" aria-label="Filter by product"></span></div>
       <div class="filters"><span class="flabel">RDC</span><span id="sfRdc" class="fgrp" role="group" aria-label="Filter by RDC"></span><span class="count" id="sfCount"></span></div>
-      <div class="tbl tall"><table><thead><tr><th>Month</th><th>Product</th><th>SKU</th><th>RDC</th><th class="c">Segment</th><th>Units sold</th><th>MA + season</th><th>Holt-Winters</th><th>Seasonal naive</th><th>Selected model</th><th style="white-space:normal;line-height:1.25">Error<br>(fcst − actual)</th><th>Abs % error</th></tr></thead><tbody id="sfBody"></tbody></table></div>
+      <div class="tbl tall"><table><thead><tr><th>Month</th><th>Product</th><th>SKU</th><th>RDC</th><th class="c">Segment</th><th>Units sold</th><th>Moving average + season</th><th>Holt-Winters</th><th>Seasonal naive</th><th>Selected model</th><th style="white-space:normal;line-height:1.25">Error<br>(fcst − actual)</th><th>Abs % error</th></tr></thead><tbody id="sfBody"></tbody></table></div>
     </section>
   </div>
 
@@ -419,7 +419,7 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
       </section>
       <section class="panel" aria-labelledby="mcH">
         <h2 id="mcH">Model comparison · WMAPE</h2>
-        <div class="tbl compact"><table><thead><tr><th>Product</th><th>MA + season</th><th>Holt-Winters</th><th>Seasonal naive</th><th>Used</th></tr></thead><tbody id="mcBody"></tbody></table></div>
+        <div class="tbl compact"><table><thead><tr><th>Product</th><th>Moving average + season</th><th>Holt-Winters</th><th>Seasonal naive</th><th>Used</th></tr></thead><tbody id="mcBody"></tbody></table></div>
       </section>
     </div>
   </div>
@@ -471,7 +471,7 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
 (function(root){
 const WPM=4.33;
 const MODELS={ma:'Moving average + seasonality',hw:'Holt-Winters',sn:'Seasonal naive'};
-const MODEL_SHORT={ma:'MA + season',hw:'Holt-Winters',sn:'Seasonal naive'};
+const MODEL_SHORT={ma:'Moving average + season',hw:'Holt-Winters',sn:'Seasonal naive'};
 const addMonth=(k,n)=>{let y=+k.slice(0,4),m=+k.slice(5,7)+n;y+=Math.floor((m-1)/12);m=((m-1)%12+12)%12+1;return y+'-'+String(m).padStart(2,'0');};
 const cal=k=>+k.slice(5,7);
 const sum=a=>a.reduce((x,y)=>x+y,0);
