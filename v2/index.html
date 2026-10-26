@@ -68,6 +68,11 @@ main .wrap{padding-block:20px 48px;display:grid;gap:20px}
 .phead h2{margin:0}
 .lead{font:600 16px/1.45 var(--f-display);margin:0 0 14px;max-width:80ch}
 .phead .fgrp{flex:0 0 auto}
+.pbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.pbar .flabel{font:500 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-width:64px}
+.pbar .pfix{font:500 13.5px var(--f-body);color:var(--ink);padding:6px 9px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.prange{font:600 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink)}
+.panel .kpis .kpi{background:var(--soft);border-color:transparent}
 .period{font:500 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
 .period b{color:var(--ink);font-weight:600}
 .subh{font:700 15px/1.2 var(--f-display);margin:22px 0 10px}
@@ -242,7 +247,7 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
 
   <!-- Overview -->
   <div id="pg-dash" class="page" role="tabpanel" aria-labelledby="tab-dash">
-    <p class="period" id="dashPeriod"></p>
+    <div class="pbar"><span class="flabel">Period</span><span class="pfix">Last 12 months</span><span class="prange" id="dashPeriod"></span></div>
     <section class="kpis" aria-label="Key figures">
       <div class="kpi"><span class="k">Forecast accuracy</span><span class="v" id="kAcc">—</span><span class="d" id="kAccD">—</span></div>
       <div class="kpi"><span class="k">Forecast bias</span><span class="v" id="kBias">—</span><span class="d" id="kBiasD">—</span></div>
@@ -303,10 +308,10 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
 
   <!-- 03 Forecast -->
   <div id="pg-sf" class="page" role="tabpanel" aria-labelledby="tab-sf" hidden>
+    <div class="pbar"><span class="flabel">Period</span><select class="sel" id="sfPer" aria-label="Period"></select><span class="prange" id="sfRange"></span></div>
     <section class="panel" aria-labelledby="sfH">
       <h2 id="sfH" hidden>Forecast detail</h2>
       <div class="sfkpi" hidden><span class="k" id="sfKpiK">Selection · last 12 months</span><span class="v" id="sfKpi">—</span><span class="d" id="sfKpiD">—</span></div>
-      <div class="filters"><span class="flabel">Period</span><select class="sel" id="sfPer" aria-label="Period"></select></div>
       <div class="filters"><span class="flabel">Category</span><span id="sfCat" class="fgrp" role="group" aria-label="Filter by category"></span></div>
       <div class="filters"><span class="flabel">Product</span><span id="sfProd" class="fgrp" role="group" aria-label="Filter by product"></span></div>
       <div class="filters"><span class="flabel">RDC</span><span id="sfRdc" class="fgrp" role="group" aria-label="Filter by RDC"></span><span class="count" id="sfCount"></span></div>
@@ -327,7 +332,7 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
   <div id="pg-cons" class="page" role="tabpanel" aria-labelledby="tab-cons" hidden>
     <section class="panel" aria-labelledby="lbH">
       <div class="phead" style="margin-bottom:12px"><h2 id="lbH">Last month review</h2><select class="sel" id="revBack" aria-label="Review period"></select></div>
-      <div class="stats" id="lbKpis"></div>
+      <div class="kpis" id="lbKpis" style="margin-bottom:14px"></div>
       <div class="grid2b" style="margin:0">
         <div class="tbl compact"><table><thead><tr><th>Category</th><th>Actual</th><th>Consensus</th><th>Error</th><th>Bias</th><th>FVA</th></tr></thead><tbody id="lbCat"></tbody></table></div>
         <div class="tbl compact"><table><thead><tr><th class="c">Seg.</th><th id="lbMissH">Largest misses</th><th>Actual</th><th>Consensus</th><th>Error</th><th>Error %</th><th class="c" id="lbDirH" hidden>By month</th></tr></thead><tbody id="lbMiss"></tbody></table></div>
@@ -391,7 +396,7 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
 
   <!-- 09 Accuracy -->
   <div id="pg-acc" class="page" role="tabpanel" aria-labelledby="tab-acc" hidden>
-    <div class="filters" style="align-items:center"><span class="flabel">Period</span><select class="sel" id="accPer" aria-label="Period"></select><span class="period" id="accRange" style="margin:0"></span></div>
+    <div class="pbar"><span class="flabel">Period</span><select class="sel" id="accPer" aria-label="Period"></select><span class="prange" id="accRange"></span></div>
     <section class="kpis" aria-label="Accuracy KPIs" id="accKpis"></section>
     <section class="panel" aria-labelledby="accCH">
       <h2 id="accCH">By category</h2>
@@ -805,6 +810,13 @@ function changes(h0=0,h1=3){const tot={pc:0,c:0,st:0,adj:0,sal:0,mkt:0},byP=new 
     return {...o,d:o.c-o.pc,dp:o.pc?(o.c-o.pc)/o.pc:null,key:k,driver:DRV[k],note};}).sort((a,b)=>Math.abs(b.d)-Math.abs(a.d));
   return {tot,prods};}
 
+/* ---------- shared KPI cards ---------- */
+const kpiCard=(k,v,d)=>`<div class="kpi"><span class="k">${k}</span><span class="v">${v}</span><span class="d">${d}</span></div>`;
+const biasD=b=>!isFinite(b)?'—':Math.abs(b)<0.02?`${pill('ok','Within ±2%')} no systematic bias`:Math.abs(b)<0.05?`${pill('warn',b>0?'Over-forecast':'Under-forecast')} ${b>0?'excess stock risk':'stockout risk'}`:`${pill('bad',b>0?'Over-forecast':'Under-forecast')} ${b>0?'excess stock risk':'stockout risk'}`;
+const fvaD=f=>!isFinite(f)?'Needs consensus history':f>=0?`${pill('ok','Inputs helped')} consensus vs. statistical`:`${pill('warn','Inputs hurt')} consensus vs. statistical`;
+const rangeTxt=(a,b)=>a===b?mLabel(b):`${mLabel(a)} – ${mLabel(b)}`;
+const perOpts=(ks,cur)=>ks.map(k=>`<option value="${k}"${k===cur?' selected':''}>${k===1?'Last month':'Last '+k+' months'}</option>`).join('');
+
 /* ---------- render ---------- */
 function render(){
   R=DPE.compute(DATA,SET,INPUTS);
@@ -819,8 +831,8 @@ function draw(){
 function renderDash(){
   const T=R.total;
   $('kAcc').textContent=pct(1-T.wmape);$('kAccD').textContent=`WMAPE ${pct(T.wmape)} · MAPE ${pct(T.mape)}`;
-  $('dashPeriod').innerHTML=`Last 12 months · <b>${mLabel(R.months[R.evalFrom])} – ${mLabel(R.months[R.last])}</b>`;
-  $('kBias').textContent=spct(T.bias);$('kBiasD').textContent=!isFinite(T.bias)?'—':Math.abs(T.bias)<0.02?'Within ±2% · no systematic bias':T.bias>0?'Over-forecast · excess stock risk':'Under-forecast · backorder risk';
+  $('dashPeriod').textContent=rangeTxt(R.months[R.evalFrom],R.months[R.last]);
+  $('kBias').textContent=spct(T.bias);$('kBiasD').innerHTML=biasD(T.bias);
   if(R.ord.length){const on=R.fillRate>=SET.target;$('kFill').textContent=pct(R.fillRate);$('kFillD').innerHTML=`${pill(on?'ok':'bad',on?'On target':'Below target')} target ${pct(SET.target,0)}`;}
   else{$('kFill').textContent='—';$('kFillD').textContent='No Orders sheet';}
   const g=next3();
@@ -862,7 +874,7 @@ function renderSF(){
   chips($('sfRdc'),['All',...new Set(R.series.map(s=>s.rdc))],UI.sfRdc,'r');
   const ok=r=>(UI.sfCat==='All'||r.category===UI.sfCat)&&(UI.sfProd==='All'||r.sku===UI.sfProd)&&(UI.sfRdc==='All'||r.rdc===UI.sfRdc);
   const K=UI.sfK,t0=Math.max(0,R.n-K),inP=r=>r.t>=t0;
-  $('sfPer').innerHTML=[1,3,6,12,24].map(k=>`<option value="${k}"${k===K?' selected':''}>${k===1?'Last month':'Last '+k+' months'}</option>`).join('');
+  $('sfPer').innerHTML=perOpts([1,3,6,12,24],K);$('sfRange').textContent=rangeTxt(R.months[t0],R.months[R.last]);
   $('sfKpiK').textContent=`Selection · ${K===1?'last month':'last '+K+' months'} (${K===1?mLabel(R.months[R.last]):mLabel(R.months[t0])+' – '+mLabel(R.months[R.last])})`;
   const rows=R.rows.filter(r=>r.f!=null&&ok(r)&&inP(r));$('sfCount').textContent=nf.format(rows.length)+' rows';
   const m=DPE.metrics(rows);$('sfKpi').textContent='WMAPE '+pct(m.wmape);
@@ -971,10 +983,10 @@ $('mgDec').addEventListener('input',e=>NOTES.dec=e.target.value);
 function renderReview(){
   const ytdK=Math.min(12,+R.months[R.last].slice(5,7)),isY=UI.revK==='ytd',K=isY?ytdK:UI.revK,L=R.reviews[K],T=L.total,hasC=T.consW!=null;
   $('lbH').textContent=isY?`Year to date review · ${mLabel(L.from)} – ${mLabel(L.to)}`:K===1?'Last month review · '+mLabel(L.to):`Last ${K} months review · ${mLabel(L.from)} – ${mLabel(L.to)}`;
-  $('revBack').innerHTML=[1,3,6,12].map(k=>`<option value="${k}"${!isY&&k===K?' selected':''}>${k===1?'Last month':'Last '+k+' months'}</option>`).join('')+`<option value="ytd"${isY?' selected':''}>Year to date (${mLabel(R.reviews[ytdK].from)} – ${mLabel(L.to)})</option>`;
+  $('revBack').innerHTML=[1,3,6,12].map(k=>`<option value="${k}"${!isY&&k===K?' selected':''}>${k===1?'Last month':'Last '+k+' months'}</option>`).join('')+`<option value="ytd"${isY?' selected':''}>Year to date</option>`;
   $('lbMissH').textContent=K===1?'Largest misses':'Largest misses';$('lbDirH').hidden=K===1;$('lbDirH').textContent=K<=6?'By month':'Months';
-  $('lbKpis').innerHTML=(hasC?[[pct(1-T.consW),'Consensus accuracy'],[spct(T.consBias),'Consensus bias'],[pts(T.fva),'Forecast value added'],[pct(1-T.statW),'Statistical accuracy']]
-    :[[pct(1-T.statW),'Statistical accuracy'],['—','Consensus accuracy · needs consensus history']]).map(([v,k])=>`<div><b>${v}</b><span>${k}</span></div>`).join('');
+  $('lbKpis').innerHTML=hasC?kpiCard('Consensus accuracy',pct(1-T.consW),`WMAPE ${pct(T.consW)} · statistical ${pct(1-T.statW)}`)+kpiCard('Consensus bias',spct(T.consBias),biasD(T.consBias))+kpiCard('FVA',pts(T.fva),fvaD(T.fva))
+    :kpiCard('Statistical accuracy',pct(1-T.statW),`WMAPE ${pct(T.statW)}`)+kpiCard('Consensus accuracy','—','Needs consensus history');
   const fv=x=>x==null?td('—'):`<td class="num" style="color:${x>=0?'var(--ok)':'var(--bad)'}">${pts(x)}</td>`;
   const row=(n,c,cls='')=>`<tr class="${cls}"><td>${esc(n)}</td>${td(n0(c.a))}${td(c.c==null?n0(c.f):n0(c.c))}${td(pct(c.consW??c.statW))}${td(c.consBias==null?'—':spct(c.consBias))}${fv(c.fva)}</tr>`;
   $('lbCat').innerHTML=L.byCat.map(c=>row(c.name,c)).join('')+row('Total',T,'tot');
@@ -1010,10 +1022,10 @@ $('revPer').addEventListener('change',e=>{UI.revW=e.target.value;renderMgmt();re
 
 function renderAcc(){
   const K=UI.accK,A=R.accFor(K),T=A.total;
-  $('accPer').innerHTML=[1,3,6,12,24].map(k=>`<option value="${k}"${k===K?' selected':''}>${k===1?'Last month':'Last '+k+' months'}</option>`).join('');
-  $('accRange').innerHTML=`<b>${K===1?mLabel(A.to):mLabel(A.from)+' – '+mLabel(A.to)}</b>`;
-  $('accKpis').innerHTML=[['MAPE',pct(T.mape),'Average % error per SKU-location-month'],['WMAPE',pct(T.wmape),'Volume-weighted % error'],['Bias',spct(T.bias),T.bias>0?'Over-forecast':'Under-forecast'],['MAD',n0(T.mad)+' units','Average error in units'],['FVA',R.hasCH?pts(T.fva):'—',R.hasCH?(T.fva>=0?'Consensus better than statistical':'Consensus worse than statistical'):'Needs consensus history']]
-    .map(([k,v,d])=>`<div class="kpi"><span class="k">${k}</span><span class="v">${v}</span><span class="d">${d}</span></div>`).join('');
+  $('accPer').innerHTML=perOpts([1,3,6,12,24],K);
+  $('accRange').textContent=rangeTxt(A.from,A.to);
+  $('accKpis').innerHTML=kpiCard('Forecast accuracy',pct(1-T.wmape),`WMAPE ${pct(T.wmape)} · MAPE ${pct(T.mape)}`)+kpiCard('Forecast bias',spct(T.bias),biasD(T.bias))
+    +kpiCard('MAD',n0(T.mad)+' units','Per product, RDC and month')+kpiCard('FVA',R.hasCH?pts(T.fva):'—',fvaD(R.hasCH?T.fva:NaN));
   const st=r=>(r.mape>SET.tolMape||Math.abs(r.bias)>SET.tolBias)?pill('warn','Review'):pill('ok','OK');
   const fv=r=>R.hasCH?`<td class="num" style="color:${r.fva>=0?'var(--ok)':'var(--bad)'}">${pts(r.fva)}</td>`:td('—');
   $('accCat').innerHTML=A.byCat.map(c=>`<tr><td>${esc(c.name)}</td>${td(n0(c.act))}${td(n0(c.fc))}${td(pct(c.mape))}${td(pct(c.wmape))}${td(spct(c.bias))}${td(n0(c.mad))}${td(R.hasCH?pct(c.consWmape):'—')}${fv(c)}<td class="c">${st(c)}</td></tr>`).join('')+
