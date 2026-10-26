@@ -68,6 +68,11 @@ main .wrap{padding-block:20px 48px;display:grid;gap:20px}
 .phead h2{margin:0}
 .lead{font:600 16px/1.45 var(--f-display);margin:0 0 14px;max-width:80ch}
 .phead .fgrp{flex:0 0 auto}
+#sfBody td.selm{background:var(--soft);font-weight:700;color:var(--ink);box-shadow:inset 0 -2px 0 var(--blue)}
+#sfBody td.nom{color:var(--muted)}
+#pg-sf .tbl table{min-width:0}
+#pg-sf thead th{white-space:normal;line-height:1.25;vertical-align:bottom;padding:8px 8px}
+#pg-sf tbody td{padding:8px 8px}
 .pbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
 .pbar .flabel{font:500 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-width:64px}
 .pbar .pfix{font:500 13.5px var(--f-body);color:var(--ink);padding:6px 9px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
@@ -316,7 +321,7 @@ ul.issues{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
       <div class="filters"><span class="flabel">Category</span><span id="sfCat" class="fgrp" role="group" aria-label="Filter by category"></span></div>
       <div class="filters"><span class="flabel">Product</span><span id="sfProd" class="fgrp" role="group" aria-label="Filter by product"></span></div>
       <div class="filters"><span class="flabel">RDC</span><span id="sfRdc" class="fgrp" role="group" aria-label="Filter by RDC"></span><span class="count" id="sfCount"></span></div>
-      <div class="tbl tall"><table><thead><tr><th>Month</th><th>Product</th><th>SKU</th><th>RDC</th><th class="c">Segment</th><th>Model</th><th>Units sold</th><th>Forecast</th><th style="white-space:normal;line-height:1.25">Error<br>(fcst − actual)</th><th>Abs % error</th></tr></thead><tbody id="sfBody"></tbody></table></div>
+      <div class="tbl tall"><table><thead><tr><th>Month</th><th>Product</th><th>SKU</th><th>RDC</th><th class="c">Segment</th><th>Units sold</th><th>MA + season</th><th>Holt-Winters</th><th>Seasonal naive</th><th>Selected model</th><th style="white-space:normal;line-height:1.25">Error<br>(fcst − actual)</th><th>Abs % error</th></tr></thead><tbody id="sfBody"></tbody></table></div>
     </section>
   </div>
 
@@ -882,7 +887,8 @@ function renderSF(){
   const rows=R.rows.filter(r=>r.f!=null&&ok(r)&&inP(r)&&(UI.sfModel==='All'||r.model===UI.sfModel)),mm=DPE.metrics(rows);$('sfCount').textContent=`${nf.format(rows.length)} rows · WMAPE ${pct(mm.wmape)} · bias ${spct(mm.bias)}`;
   const m=DPE.metrics(rows);$('sfKpi').textContent='WMAPE '+pct(m.wmape);
   $('sfKpiD').textContent=`${UI.sfProd==='All'?(UI.sfCat==='All'?'All products':UI.sfCat):(R.prodL12.find(p=>p.sku===UI.sfProd)||{}).product} · ${UI.sfRdc==='All'?'all RDCs':UI.sfRdc} · MAPE ${pct(m.mape)} · bias ${spct(m.bias)} · MAD ${n0(m.mad)} units`;
-  $('sfBody').innerHTML=rows.map(r=>{const e=r.f-r.a;return `<tr><td>${mLabel(r.m)}${r.promo?' <span class="pill warn">Promo</span>':''}</td><td>${esc(r.product)}</td><td>${esc(r.sku)}</td><td>${esc(r.rdc)}</td><td class="c">${segTag(R.seg.get(r.sku))}</td><td><span class="mdl">${DPE.MODEL_SHORT[r.model]}</span></td>${td(n0(r.a))}${td(n0(r.f))}${td(sgn(Math.round(e)))}${td(r.a?pct(Math.abs(e)/r.a):'—')}</tr>`;}).join('');
+  const SMAP=new Map(R.series.map(x=>[x.sku+'|'+x.rdc,x]));
+  $('sfBody').innerHTML=rows.map(r=>{const e=r.f-r.a;return `<tr><td>${mLabel(r.m)}${r.promo?' <span class="pill warn">Promo</span>':''}</td><td>${esc(r.product)}</td><td>${esc(r.sku)}</td><td>${esc(r.rdc)}</td><td class="c">${segTag(R.seg.get(r.sku))}</td>${td(n0(r.a))}${['ma','hw','sn'].map(k=>{const sr=SMAP.get(r.sku+'|'+r.rdc),v=sr&&sr.models[k]?sr.models[k].f[r.t]:null;return `<td class="num ${k===r.model?'selm':'nom'}">${v==null?'—':n0(v)}</td>`;}).join('')}<td><span class="mdl">${DPE.MODEL_SHORT[r.model]}</span></td>${td(sgn(Math.round(e)))}${td(r.a?pct(Math.abs(e)/r.a):'—')}</tr>`;}).join('');
 }
 function renderEx(){
   const types=['All',...new Set(R.ex.map(e=>e.type))],cnt=t=>t==='All'?R.ex.length:R.ex.filter(e=>e.type===t).length;
